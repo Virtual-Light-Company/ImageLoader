@@ -106,6 +106,7 @@ struct param {
    FILE *fptr;                             /* file ptr to encoded data */
    int width;                              /* width of the image */
    int height;                             /* height of the image */
+   int numComponents;					   /* num color components 1 - 4 */
    jint *buffer;                           /* one rows worth of pixels */
    int row_num;                            /* current row number */
    int error;                              /* TRUE on error, FALSE otherwise */

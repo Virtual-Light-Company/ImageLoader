@@ -433,6 +433,33 @@ Java_vlc_net_content_image_ImageDecoder_getImageHeight
 }
 
 /*
+ * Desc:      Returns the number of color components of the image. This will return an
+ *            undefined value before startDecoding() sucessfully completes.
+ * Input:
+ *            id:          thread id (offset into arrays at top of this file)
+ * Output:
+ *            None
+ * Return:
+ *            The width of the image
+ * Exception:
+ *            None
+ * Class:     vlc_net_content_image_ImageDecoder
+ * Method:    getImageWidth
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL
+Java_vlc_net_content_image_ImageDecoder_getNumColorComponents
+(JNIEnv *env, jobject obj, jint id)
+{
+   Parameters params;
+
+   params = param_list[id];
+
+   return (jint) params->numComponents;
+}
+
+
+/*
  * Desc:      Returns the next row of the image.  This function will keep
  *            track of which is the current row to return.
  * Input:
