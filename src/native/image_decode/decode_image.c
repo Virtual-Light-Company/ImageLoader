@@ -80,7 +80,7 @@ static void throw_exception(JNIEnv *env, char *exception, char *message)
  */
 JNIEXPORT jobjectArray JNICALL
 Java_vlc_net_content_image_ImageDecoder_getFileFormats
-(JNIEnv *env, jobject obj)
+(JNIEnv *env, jclass obj)
 {
    int i;
    jarray string_array;
@@ -121,7 +121,7 @@ Java_vlc_net_content_image_ImageDecoder_getFileFormats
  */
 JNIEXPORT void JNICALL
 Java_vlc_net_content_image_ImageDecoder_initialize
-(JNIEnv *env, jobject obj, jint num_threads)
+(JNIEnv *env, jclass obj, jint num_threads)
 {
    char buf[100];
    int row, i;
