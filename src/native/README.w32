@@ -1,0 +1,49 @@
+Windows users:
+Requires the Sun JDK, and Microsoft Visual C to compile.
+
+1. Ensure that all the image libraries have been unpacked so that the
+   directory structure resembles that shown below.
+
+   src
+    +
+    |--------archive
+    |--------lib
+    |--------libjpeg
+    |--------libpng
+    |          |
+    |          +----scripts
+    |--------libtiff
+    |          |
+    |          +----contrib
+    |          +----dist
+    |          +----html
+    |          +----libtiff
+    |          +----man
+    |          +----port
+    |          +----tools
+    |--------zlib
+               |
+               +----amiga
+               +----contrib
+               +----msdos
+               +----nt
+               +----os2
+
+   Sample commands to achieve this are:
+
+     tar xvf archive\zlib.tar.gz
+     move zlib-1.1.3 zlib
+     tar xvf archive\libpng1.0.3.tar.gz
+     move libpng-1.0.3 libpng
+     tar xvf archive\jpegsrc.v6b.tar.gz
+     move jpeg-6b libjpeg
+     tar xvf archive\tiff-v3.4beta037.tar.gz
+     move tiff-v3.4beta037 libtiff
+
+
+2. Install instructions.
+   - Edit the build script (buildlib.bat) to ensure that the
+     given paths to the jdk and your C compiler are correct
+     for your machine.
+
+   - Run the script.

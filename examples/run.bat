@@ -1,0 +1,1 @@
+java -mx150M -classpath %CLASSPATH%;../ ImageViewer %1 %2

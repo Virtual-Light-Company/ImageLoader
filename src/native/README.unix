@@ -1,0 +1,126 @@
+Build Instructions
+
+1. Ensure that all the image libraries have been unpacked so that the
+   directory structure resembles that shown below.
+
+   src
+    +
+    |--------archive
+    |--------lib
+    |--------libjpeg
+    |--------libpng
+    |          |
+    |          +----scripts
+    |--------libtiff
+    |          |
+    |          +----contrib
+    |          +----dist
+    |          +----html
+    |          +----libtiff
+    |          +----man
+    |          +----port
+    |          +----tools
+    |--------zlib
+               |
+               +----amiga
+               +----contrib
+               +----msdos
+               +----nt
+               +----os2
+
+   Sample commands to achieve this are:
+
+       gzip -dc archive/zlib.tar.gz | tar xf -
+       mv zlib-1.1.3 zlib
+       gzip -dc archive/libpng-1.0.3.tar.gz | tar xf -
+       mv libpng-1.0.3 libpng
+       gzip -dc archive/jpegsrc.v6b.tar.gz | tar xf -
+       mv jpeg-6b libjpeg
+       gzip -dc archive/tiff-v3.4beta037.tar.gz | tar xf -
+       mv tiff-v3.4beta037 libtiff
+
+2. Install instructions.
+   - Each of the supplied libraries shown above has its own
+     documentation on how to build the library.  This is
+     generally achieved by running the supplied configure
+     script and then invoking make.
+
+     However, the Makefile will probably have to be modified
+     to generate position independent code.  This can be
+     achieved by adding the switch -fpic to the CFLAGS
+     (assumine the C compiler is gcc).
+
+   Sample commands assuming gcc
+
+       cd zlib
+       ./configure
+       sed -e '/^CFLAGS/ s/^.*$/& -fpic/' Makefile > tmp.out
+       mv tmp.out Makefile
+       make
+       cp libz.a ../lib
+       cd ..
+
+       cd libpng
+       cp scripts/makefile.std Makefile
+       sed -e '/^CFLAGS/ s/#.*$/-fpic/' -e 's/CC=cc/CC=gcc/' Makefile > tmp.out
+       mv tmp.out Makefile
+       make
+       cp libpng.a ../lib
+       cd ..
+     
+       cd libjpeg
+       ./configure
+       sed -e '/^CFLAGS/ s/^.*$/& -fpic/' Makefile > tmp.out
+       mv tmp.out Makefile
+       make
+       cp libjpeg.a ../lib
+       cd ..
+
+   - Special instructions for generating the Tiff library.
+     Run the configure script.
+     Edit the generated Makefile in the directory:
+        src/libtiff/libtiff
+      Do a global search and replace /tif_unix.c/tif_custom_unix.c/
+     Copy the file src/archive/tiff/tif_custom_unix.c to the
+     directory:
+        src/libtiff/libtiff
+     run make.
+
+   Sample commands assuming gcc
+       cd libtiff
+       ./configure
+       cd libtiff
+       sed -e 's/tif_unix/tif_custom_unix/' Makefile > tmp.out
+       mv tmp.out Makefile
+       cp ../../archive/tiff/tif_custom_unix.c .
+       make
+       cp libtiff.a ../../lib
+       cd ../..
+
+   - After building all the above libraries, copy the libraries (lib*.a)
+     into the directory src/lib.
+
+   - In the directory src: generate the shared library with the command:
+
+       javah -classpath ${CLASSPATH}:.. -jni \
+                 vlc.net.content.image.ImageDecoder
+
+       gcc -fpic -shared *.c -L./lib -lz -lpng -ljpeg -ltiff \
+          -o libimage_decode.so \
+          -I./zlib -I${JDKHOME}/include -I${JDKHOME}/include/PLATFORM
+
+3. Java code for jdk1.1
+
+    The code, as it is currently is setup for jdk1.2/1.3.  To change it
+    it work with jdk1.1 the following files need to be edited:
+       vlc/net/content/image/ImageDecoder.java
+       vlc/net/content/image/gif.java
+
+    Both these files have bits of code to uncomment to support jdk1.1.
+    See the internal code documentation for details.
+
+4. Using the library.
+
+    See the example demo in the example directory.
+    Make sure that the library created is in your shared library path
+

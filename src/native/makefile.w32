@@ -1,0 +1,45 @@
+#
+# Makefile for the Image Decoder shared library
+# Compile this under one of the myriad of Microsoft visual C compilers
+#
+#        nmake /f makefile.w32
+#
+# This will produce a library, image_decode.dll
+#
+# maintainer: Justin Couch
+
+# source files:
+SRCS = common.c decode_image.c readppm.c readtiff.c readtarga.c \
+readbmp.c readjpeg.c readpng.c
+
+OBJS = common.obj decode_image.obj readppm.obj readtiff.obj readtarga.obj \
+readbmp.obj readjpeg.obj readpng.obj
+
+CC=cl
+RM=del
+JAVAH=javah
+DECODE_LIB=image_decode.dll
+
+# Optimize for speed and windows DLLs
+CFLAGS = -O2 -GD -nologo -I./zlib
+
+all: $(DECODE_LIB)
+
+vlc_content_image_ImageDecoder.h:
+	$(JAVAH) -jni vlc.content.image.ImageDecoder
+
+$(DECODE_LIB): $(OBJS)
+	$(CC) -LD -Fe$@ $(OBJS) zlib.lib libpng.lib libjpeg.lib libtiff.lib
+
+clean:
+	$(RM) *.obj
+
+# dependencies
+common.obj: common.c decode_image.h vlc_content_image_ImageDecoder.h
+decode_image.obj: decode_image.c decode_image.h vlc_content_image_ImageDecoder.h
+readppm.obj: readppm.c decode_image.h vlc_content_image_ImageDecoder.h
+readtiff.obj: readtiff.c decode_image.h vlc_content_image_ImageDecoder.h
+readtarga.obj: readtarga.c decode_image.h vlc_content_image_ImageDecoder.h
+readbmp.obj: readbmp.c decode_image.h vlc_content_image_ImageDecoder.h
+readjpeg.obj: readjpeg.c decode_image.h vlc_content_image_ImageDecoder.h
+readpng.obj: readpng.c decode_image.h vlc_content_image_ImageDecoder.h

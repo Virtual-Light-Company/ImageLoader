@@ -1,0 +1,533 @@
+<HTML>
+<HEAD>
+<TITLE>Image Handling with Java</TITLE>
+</HEAD>
+
+<BODY>
+
+<H1 ALIGN=center>Image Loading under Java</H1>
+
+<H2 ALIGN=center>Phase 2</H1>
+
+<TABLE WIDTH="100%">
+<TR>
+  <TD ALIGN=left><I>Last Updated: </I>9 Nov 1999
+</TR>
+</TABLE>
+
+<HR>
+<P>
+
+<CENTER>
+<H3>Summary</H3>
+</CENTER>
+Support for different image formats under Java is needed.  We have designed
+and implemented a memory efficient method of loading different image
+formats.  Our solution utilizes native methods and JNI.  Our method is
+approximately twice as fast as Java's internal Jpeg loader.  The memory
+usage of our method is up to two and half times less than that used by Java
+for storing Jpeg images.
+
+<H3>Supported Image Formats.</H2>
+
+<UL>
+<LI>Jpeg
+<LI>GIF
+<LI>Targa
+<LI>Portable pixmap
+<LI>Portable graymap
+<LI>Tiff - LZW compressed images are not decoded correctly
+<LI>PNG
+<LI>MS & OS/2 bitmaps
+</UL>
+
+<HR>
+
+<H2>Introduction</H2>
+
+There are current problems with image loading under Java as it currently
+stands.  The most obvious failing is that only two image formats are
+supported (gif and jpeg).  With our application, we have a need to support
+the "<EM>common</EM>" image formats.  Common is defined to be whatever the user
+decides to throw at the application.  Specifically, common includes Tiff,
+Targa, Jpeg, GIF, PNG and BMP.
+<P>
+Another more distressing problem with image loading under Java is that of
+memory usage.  It seems that to load and display an image, multiple copies
+of that image will be made and stored in memory.  This becomes a serious
+problem when an application uses large images, as is the case with ours.  An
+example of this memory bloat follows.
+<P>
+Under JDK1.2, loading and displaying an image 4096x4096 using 16bpp should
+consume 32megs.  However in reality, approximately
+<A HREF="#Table1">158megs</A> are consumed.
+This becomes an obvious problem for machines with little memory.
+<P>
+<H3>Solution to these problems are needed.</H3>
+
+There are few image handling libraries available for Java.  Those
+that are available, are closed source, not fully implemented and probably bug
+ridden.  This is not acceptable for our project as we require rapid bug
+fixes, feature additions and we cannot afford to rely on a 3rd party for
+this.
+<P>
+Therefore we will develop our image decoding library in-house so we can
+quickly fix bugs and add new image formats.  It was decided to implement the
+library using JNI and native methods, rather than implement the image
+decoders in 100% Java.  Reasons for this follow:
+
+<UL>
+ <LI>Many of the image formats are complex and would take much time to write
+     in Java.  (e.g. Tiff, PNG and Jpeg.)
+ <LI>There exist freely available image libraries written in C which have been
+     well tested and are virtually bug free.
+ <LI>A native solution would be faster than a pure Java solution.  With large
+     images, decreasing loading time by a few seconds would be advantageous.
+ <LI>Using JNI would give programmer experience with native methods, which
+     would aid if it is necessary to use it in other areas.
+ <LI>A well designed interface between the Java and native code would allow
+     for a 100% pure Java solution in the future if it becomes advantageous
+     to do so.
+</UL>
+<P>
+It appears that the Image Producer/Consumer design used by Java inherently
+makes multiple copies of image data.  However, with JDK1.2, a BufferedImage
+is introduced which does not have to use the producer/consumer design to get
+and set image data.  This means that it is possible to produce image loaders
+which will not make extra copies of image data, thereby keeping memory usage
+down.  Our image loaders will make use of the BufferedImage provided with
+JDK1.2, but should provide facility to work with JDK1.1 albeit with
+increased memory consumption.
+<P>
+
+<HR>
+
+<H2>Constraints.</H2>
+
+The image loading is to be implemented as a Content Handler.  This is a
+requirement of our application.  A Content Handler takes the content of a
+URL (as a stream) does some processing on this stream and then returns a
+processed object.  In our case, the object will be an image.  This process
+is illustrated in <A HREF="#Figure1">Figure 1.</A>
+<P>
+<A NAME="Figure1">
+<CENTER>
+<IMG SRC="fig1.gif" WIDTH=200>
+<BR>
+Figure 1.  Typical Content Handler
+</CENTER>
+<P>
+Our image loader must therefore be designed to accept the image data (e.g.
+contents of the file picture.jpg) as a stream, and not as a file.  This
+means that the image loaders will have to work with sequential data, not
+random access data.  This is illustrated in <A HREF="#Figure2">Figure 2.</A>
+
+<A NAME="Figure2">
+<CENTER>
+<IMG SRC="fig2.gif" WIDTH=320>
+<BR>
+Figure 2.  Content Handler invoking ImageDecoder
+</CENTER>
+<P>
+
+<HR>
+
+<H2>Architecture</H2>
+
+<H3>Java side.</H3>
+
+The image loader is based around the ImageDecoder Java class (shown in
+<A HREF="#Figure2">Figure 2</A>).  The content handler is merely the
+mechanism that invokes the ImageDecoder.  It has no bearing on the way the
+image handling works, so it will no longer be discussed.
+<P>
+The ImageDecoder is a class that takes an InputStream containing data from
+an image file, and returns an Image (a BufferedImage if using Java2D (which
+is provided with JDK1.2)).  <A HREF="#Figure3">Figure 3</A> shows the
+internals of this class.  From this figure we can see that the decoding of
+image data into pixel data is done natively.  The ImageDecoder passes the
+image data to the native code, which returns pixel data row at a time.  The
+ImageDecoder converts this pixel data into an Image object and returns it.
+<P>
+<A NAME="Figure3">
+<CENTER>
+<IMG SRC="fig3.gif" WIDTH=400>
+<BR>
+Figure 3.  ImageDecoder communicating with Native Code.
+</CENTER>
+<P>
+
+The basic algorithm that the ImageDecoder follows is thus:
+<A NAME="Algorithm">
+<OL>
+  <LI> Initialise the native code by informing it of the image type (e.g
+       jpeg, tiff) of the data that will be sent.
+  <LI> Send all image data to the native code.
+  <LI> Tell native code to start decoding.  The native code reads header
+       info and prepares for decoding the image.
+  <LI> Query the native code for the image dimensions.
+  <LI> For each row of the image, get a row of pixel data from the native code.
+  <LI> Finish with the native code.  Native code performs any cleanups
+       necessary.
+  <LI> Convert the pixel rows into an image.
+</OL>
+<CENTER> <STRONG>Algorithm 1.  Algorithm for decoding an image</STRONG>
+</CENTER>
+<P>
+The first thing to note from this is that the image type is
+specifically given to the native code.  This is not inferred from the image
+data input stream.  This simplifies the native code, in that it doesn't have
+to read and buffer header information in determining the image type.  It
+does, however, introduce a problem if the incorrect image type is passed.
+For example, a GIF file may have an extension of .bmp.  This means that the
+image data will not be recognised as a GIF image and will return an error to
+that effect.  This is desired behaviour as the file extension is a well
+defined method of identifying the file contents and should match correctly.
+<P>
+In step 2 of the <A HREF="#Algorithm">algorithm</A>, we send all the image data to the native code.
+In step 3 we read in the header to determine the image properties.  If the
+header is at the beginning of the image data, it is not necessary to
+transfer the entire image contents before reading the header.  These steps
+can operate somewhat in parallel.  The native code can read in and process
+the header, while the rest of the image data is still arriving.  In our
+implementation this is achieved by running step 2 inside a separate thread.
+So <A HREF="#Figure3">Figure 3</A> can be implemented as shown in
+<A HREF="#Figure4">Figure 4</A>.  Here step 2 runs in a separate thread in
+parallel with steps 3, 4 and 5.  There is a case where step 2 is not run in
+a separate thread and the algorithm is run sequentially in a single thread.
+This is discussed in the next <A HREF="#Thread_problem">section.</A>
+<P>
+
+<A NAME="Figure 4">
+<CENTER>
+<IMG SRC="fig4.gif" WIDTH=400>
+<BR>
+Figure 4.  Threaded ImageDecoder
+</CENTER>
+<P>
+
+The image that is created from the pixel data is of a DirectColorModel,
+using 32 bits per pixel (as in the default Java ColorModel).  This uses 8
+bits for each of the alpha, red, green and blue colour components.  In the
+future, the image will be created using 16 bits per pixel (1bit for alpha,
+and 5 bits for each of red, green and blue).  Due to a Java bug, this can
+not be achieved at the moment, but when this is implemented, the memory
+usage for each image will halve.
+<P>
+<HR>
+<H3>Native Code.</H3>
+
+A commonality with the image libraries that we have, is that they all accept
+their image data from an open file descriptor.  They do not require a
+filename and perform the opening themselves.  This has led us to develop two
+methods of passing the image data to the decoding routines.
+<P>
+The first (and simplest) method, is to create a temporary file and write all
+the image data received from the Java side to this file.  When all data has
+been received, we then open this file and pass this newly opened file
+descriptor to the decoding routines.  This requires a sequential approach to
+the <A HREF="#Algorithm">algorithm</A> described on the Java side.  The
+reason for this, is that when reading from a file which has another
+process/thread writing to it, there is no way to know when all writing has
+been finished.  So to ensure safety, all writing must be finished and the
+file closed, before reading from this temporary file can commence.
+<P>
+There are disadvantages with this method.  Firstly, the sequential approach
+means that we can't interleave steps of the <A
+HREF="#Algorithm">algorithm</A> which will increase the
+time taken to decode an image.  But a more pronounced increase in time is
+incurred by the use of a temporary file.  Having to first write the data to
+disk, and then read it back incurs memory to disk, and disk to memory
+traffic.  This introduces a significant slowdown to the decoding process.
+<P>
+The second method is slightly more complex.  It involves setting up a pipe.
+The Java side will send data to the writing end of the pipe, and the file
+descriptor of the reading end is passed to the image decoding routines.  For
+this to be achieved, the Java side <strong>must</strong> send the data in a
+separate thread.  The reason for this is that when the pipe fills, the
+writing thread will block, waiting for the data to be read from the pipe.
+If the algorithm proceeds sequentially, the thread will block when the pipe
+fills, and will never unblock as there is nothing to empty to pipe.
+<P>
+This method is more efficient in terms of speed, as we skip the overhead of
+writing all the data to disk, and then reading it back again.  The
+programmer must be aware that the file descriptor passed to the image
+decoding routines is only capable of sequential access, not random access.
+This is essentially not a problem as most image formats can be decoded
+sequentially (see the discussion of <A HREF="#tiff_discussion">Tiff</A> for
+an exception).
+<P>
+<A NAME="Thread_problem">
+However there is an implementation problem with this method and green
+threads under Unix.  If the reading end of the pipe tries to read and the
+pipe is empty, it will block until data is available (or the writing end is
+closed).  This is correct behaviour.  However with green threads, if one
+thread blocks on a call to read(2), then the entire process will block.
+This introduces a race condition.  Everything will work correctly as long as
+the reader does not try to read from an empty pipe.  There is unfortunately
+no way to guarantee this.  This means that under these conditions we must
+use the first (and slower) method.
+
+<A NAME="tiff_discussion">
+<H4>Issues with Tiff</H4>
+
+Tiff (Tagged Image Format) is an image format that cannot decode an image by
+reading sequentially from the data stream.  This format stores a directory
+in the image file which contains information about the images contained
+within the file.  When decoding, we need to seek to the directory, read and
+process the directory, then seek to where the offset where the image is
+stored in the file.  If we are using the second method as described above,
+then the decoding will not work because we cannot seek.  Our solution to
+this was to firstly read all of the image data into memory buffer, and then
+write our own read, and seek routines to access the data from this buffer,
+rather than using the file descriptor.
+
+<HR>
+
+<H2>Performance</H2>
+
+<A HREF="#Table1">Table 1</A> shows timings and memory usage comparisons
+loading and displaying various image formats using jdk1.1.5, and jdk1.2rc1.
+These measurements were taken on a PC running windows NT.  Measurements were
+all taken under approximately the same cpu and network load.  The timings
+are not to be taken as absolute, they are given to show the relative
+difference between the different methods.  Measurements given are the
+average of four runs, under near identical conditions.
+<P>
+The metrics are for loading in a particular image of dimensions 4096x4096
+and of 32 bits colour depth.  The memory that such an image should consume
+is 64 megabytes.  The memory usage figures are approximate as they were
+taken using the MEM Usage facility of the NT Task Manager.
+<P>
+
+<A NAME="Table1">
+<TABLE BORDER WIDTH="100%">
+
+<TR>
+<TH></TH>
+<TH>Time to decode<BR>and display (seconds)</TH>
+<TH>Peak memory usage<BR>(megabytes)</TH>
+<TH>Final memory usage<BR>(megabytes)</TH>
+</TR>
+
+<TR>
+<TD>Image loading under JDK1.2rc1</TD>
+</TR>
+
+<TR>
+<TD>MS Bitmap</TD>
+<TD>2.8</TD>
+<TD>133</TD>
+<TD>67</TD>
+</TR>
+
+<TR>
+<TD>Jpeg</TD>
+<TD>5.4</TD>
+<TD>67</TD>
+<TD>67</TD>
+</TR>
+
+<TR>
+<TD>Portable Pixmap/Graymap</TD>
+<TD>4.5<SUP>*</SUP></TD>
+<TD>67</TD>
+<TD>67</TD>
+</TR>
+
+<TR>
+<TD>Targa</TD>
+<TD>3.8</TD>
+<TD>133</TD>
+<TD>67</TD>
+</TR>
+
+<TR>
+<TD>Jpeg (using Java)</TD>
+<TD>10.8</TD>
+<TD>158</TD>
+<TD>158</TD>
+</TR>
+
+<TR>
+<TD>GIF (using Java)</TD>
+<TD>2.8</TD>
+<TD>48</TD>
+<TD>48</TD>
+</TR>
+
+<TR>
+<TD>Image loading under JDK1.1.5</TD>
+</TR>
+
+<TR>
+<TD>MS Bitmap</TD>
+<TD>5.0</TD>
+<TD>139</TD>
+<TD>123</TD>
+</TR>
+
+<TR>
+<TD>Jpeg</TD>
+<TD>5.5</TD>
+<TD>123</TD>
+<TD>123</TD>
+</TR>
+
+<TR>
+<TD>Portable Pixmap/Graymap</TD>
+<TD>4.5<SUP>*</SUP></TD>
+<TD>123</TD>
+<TD>123</TD>
+</TR>
+
+<TR>
+<TD>Targa</TD>
+<TD>3.8</TD>
+<TD>155</TD>
+<TD>125</TD>
+</TR>
+
+<TR>
+<TD>Jpeg (using Java)</TD>
+<TD>8.2</TD>
+<TD>123</TD>
+<TD>123</TD>
+</TR>
+
+<TR>
+<TD>GIF (using Java)</TD>
+<TD>3.0</TD>
+<TD>33</TD>
+<TD>33</TD>
+</TR>
+
+</TABLE>
+<CENTER>
+Table 1.  Metrics of Image Loading
+</CENTER>
+
+<P>
+<SUP>*</SUP> Due to the fact that Portable Pixmap/Graymap files are very
+large, most of the decoding time is spent reading the image data from disk.
+For this example the time taken was approximately 20 seconds.  The figure
+displayed in the table was arrived at by buffering the image data in memory
+to remove disk access time in the timings.
+<P>
+The table does not contain results for Tiff images as the decoder for Tiff
+is still being worked on at the time of writing of this document.
+
+<H4>Discussion</H4>
+
+For this discussion we will be ignoring the results for the GIF image.  This
+is because the GIF image uses an IndexedColorModel, while all the other
+formats are represented using a DirectColorModel.  This disparity make
+comparisons difficult.
+<P>
+From the table we can see that our image loader is approximately twice as
+fast as the Jpeg loader provided with Java.  This in itself would make it
+worthwhile to use this method.
+<P>
+The real advantage can be seen with the memory usage.  Under JDK1.2, the
+Java implementation of the Jpeg loader consumes 158Megs, while our method
+consumes 67Megs.  Recall that 64Megs is required to hold the image data.
+The memory usage comparison here is obvious.  <P>
+Some of the decoding methods have a peak memory usage higher than their
+final.  This is due to the fact that some image formats store data
+bottom-up, instead of top down.  We need to buffer the entire image in these
+cases, which accounts for the peak being approximately double the amount of
+memory to store the image data.
+<P>
+Under JDK1.1, we cannot use our BufferedImage, and must rely on Java's image
+producer/consumer architecture.  This accounts for the increase in memory
+usage.  Even so, our custom method is still faster than Java's internal Jpeg
+loader.  The memory usage is comparable with that of Java, so there is no
+real disadvantage of our method.
+
+<HR>
+
+<H2>Image MimeTypes</H2>
+
+<CENTER>
+<TABLE BORDER>
+<TR>
+<TH>Image Format</TH>
+<TH>Mime Type</TH>
+</TR>
+
+<TR>
+<TD>Jpeg</TD>
+<TD>image/jpeg</TD>
+</TR>
+
+<TR>
+<TD>GIF</TD>
+<TD>image/gif</TD>
+</TR>
+
+<TR>
+<TD>Targa</TD>
+<TD>image/targa<SUP>*</SUP></TD>
+</TR>
+
+<TR>
+<TD>Portable Pixmap</TD>
+<TD>image/x-portable-pixmap</TD>
+</TR>
+
+<TR>
+<TD>Portable Graymap</TD>
+<TD>image/x-portable-graymap</TD>
+</TR>
+
+<TR>
+<TD>Tiff</TD>
+<TD>image/tiff<SUP>*</SUP></TD>
+</TR>
+
+<TR>
+<TD>PNG</TD>
+<TD>image/png<SUP>*</SUP></TD>
+</TR>
+
+<TR>
+<TD>MS & OS/2 Bitmap</TD>
+<TD>image/bmp<SUP>*</SUP></TD>
+</TR>
+
+</TABLE>
+</CENTER>
+<P>
+<SUP>*</SUP>Although the MIME types for these image formats have not been
+specified by the IANA, the MIME types are not preceeded by the usual "x-"
+which is recommended to preceed user defined MIME types.  This is because it
+is expected that the IANA will adopt these MIME types in the near future.
+Indeed, web servers (e.g. apache) are providing the MIME types for these
+image files as we have shown in the above table.
+
+<HR>
+
+<H2>Things left to do.</H2>
+
+These are notes aimed at the programmer.
+
+<UL>
+<LI>Improve error handling with Tiff images.
+<LI>Improve memory usage with Tiff images.
+<LI>Look at scanline approach with Tiff images.
+<LI>Look at adding improved memory usage for bottom-up image files.
+<LI>When Java bug is fixed, move to 16bpp instead of 32.
+</UL>
+
+<P>
+<P>
+<HR>
+<CENTER>
+<FONT SIZE=-1>Maintainer:
+  <A HREF=mailto:justin@vlc.com.au>Justin Couch</A>
+</FONT>
+
+<BR>
+<FONT SIZE=-1>Date: 9th November 1999</FONT>
+</CENTER>
+</HTML>

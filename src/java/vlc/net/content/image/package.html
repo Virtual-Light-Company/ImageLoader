@@ -1,0 +1,93 @@
+<!--
+  Package documentation for vlc.net.content.image
+-->
+
+<HTML>
+
+<BODY>
+
+Content handlers for the MIME major type of <CODE>image/</CODE>.
+<P>
+
+Content handlers provide a way of interpreting streamed data without knowing
+what the underlying protocol is about. This package contains content handlers
+for dealing with the various image formats.
+<P>
+
+Unlike the standard Java implementations, these use native code to load the
+images, thus providing a faster implementation and less impact on the JVM
+memory footprint. The native libraries are sourced from around the internet and
+have a very thin veneer applied to make them useful with Java.
+<P>
+
+<H2>Supported Formats</H2>
+
+The following formats are supported
+
+<TABLE BORDER=1>
+<TR>
+  <TH>MIME type</TH>
+  <TH>Format</TH>
+  <TH>Library Source</TH>
+  <TH>Lib Version</TH>
+</TR>
+
+<TR>
+  <TD>image/bmp</TD>
+  <TD>Windows, OS/2 Bitmap</TD>
+  <TD>Own</TD>
+  <TD>1.0</TD>
+</TR>
+
+<TR>
+  <TD>image/gif</TD>
+  <TD>GIF (fixed)</TD>
+  <TD>Java's</TD>
+  <TD>N/A</TD>
+</TR>
+
+<TR>
+  <TD>image/jpeg</TD>
+  <TD>JPEG</TD>
+  <TD>IJC libjpeg</TD>
+  <TD>6b</TD>
+</TR>
+
+<TR>
+  <TD>image/png</TD>
+  <TD>PNG v1.2</TD>
+  <TD><A HREF="http://www.libpng.org/pub/png">http://www.libpng.org/pub/png/</A></TD>
+  <TD>1.0.7</TD>
+</TR>
+
+<TR>
+  <TD>image/targa</TD>
+  <TD>Targa</TD>
+  <TD>Own</TD>
+  <TD>1.0</TD>
+</TR>
+
+<TR>
+  <TD>image/tiff</TD>
+  <TD>TIFF (all forms)</TD>
+  <TD><A HREF="ftp://ftp.sgi.com/graphics/tiff/">ftp://ftp.sgi.com/graphics/tiff</A></TD>
+  <TD>3.4</TD>
+</TR>
+
+<TR>
+  <TD>image/x-portable-graymap</TD>
+  <TD>X Pixmap</TD>
+  <TD>Own</TD>
+  <TD>1.0</TD>
+</TR>
+
+<TR>
+  <TD>image/x-portable-pixmap</TD>
+  <TD>X Bitmap</TD>
+  <TD>Own</TD>
+  <TD>1.0</TD>
+</TR>
+</TABLE>
+
+</BODY>
+</HTML>
