@@ -6,7 +6,7 @@
 # Lowest level common makefile for Java code
 #
 # Author: Justin Couch
-# Version: $Revision: 1.4 $
+# Version: $Revision: 1.5 $
 #
 #*********************************************************************
 
@@ -46,12 +46,11 @@ endif
 EMPTY         =
 SPACE         = $(EMPTY) $(EMPTY)
 
-IS_WIN32 = $(findstring "CYGWIN",`uname`)
-
-ifdef IS_WIN32
-  PATH_SEP=';'
-else
+OS_NAME=$(shell uname)
+ifeq (, $(strip $(findstring CYGWIN, $(OS_NAME))))
   PATH_SEP=':'
+else
+  PATH_SEP=';'
 endif
 
 ifdef JARS

@@ -6,7 +6,7 @@
 # Lowest level common makefile for both native and Java code
 # 
 # Author: Justin Couch
-# Version: $Revision: 1.5 $
+# Version: $Revision: 1.6 $
 #
 #*********************************************************************
 
@@ -33,8 +33,16 @@ INCLUDE_LIST=$(INCLUDES) $(INCLUDE_DIR) $(JNI_HEADER_DIR)
 EMPTY =
 SPACE = $(EMPTY) $(EMPTY)
 
-ifeq ("cygwin", "$(strip $(OSTYPE))")
-  IS_WIN32=true
+OS_NAME=$(shell uname)
+ifeq (, $(strip $(findstring CYGWIN, $(OS_NAME))))
+  PATH_SEP=':'
+  LIB_SUFFIX=so
+  INCLUDE_LIST+=$(JNI_HEADER_DIR)/unix
+  CC_LINK_OPTIONS = -Wl -shared $(CFLAGS)
+  ifdef LIBRARY_3RDPARTY
+    3RDPARTY_LIBS = $(patsubst %,-l%,$(LIBRARY_3RDPARTY))
+  endif
+else
   PATH_SEP=';'
   LIB_SUFFIX=dll
   INCLUDE_LIST+=$(JNI_HEADER_DIR)/win32 /usr/include/win32api
@@ -42,14 +50,6 @@ ifeq ("cygwin", "$(strip $(OSTYPE))")
   CC_LINK_OPTIONS = -Wl --add-stdcall-alias -shared $(CFLAGS)
   ifdef LIBRARY_3RDPARTY
     3RDPARTY_LIBS = $(patsubst %,$(3RDPARTY_DLL_DIR)/lib%.dll,$(LIBRARY_3RDPARTY))
-  endif
-else
-  PATH_SEP=':'
-  LIB_SUFFIX=so
-  INCLUDE_LIST+=$(JNI_HEADER_DIR)/unix
-  CC_LINK_OPTIONS = -Wl -shared $(CFLAGS)
-  ifdef LIBRARY_3RDPARTY
-    3RDPARTY_LIBS = $(patsubst %,-l%,$(LIBRARY_3RDPARTY))
   endif
 endif
 
