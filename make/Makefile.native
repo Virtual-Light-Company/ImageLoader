@@ -6,7 +6,7 @@
 # Lowest level common makefile for both native and Java code
 # 
 # Author: Justin Couch
-# Version: $Revision: 1.2 $
+# Version: $Revision: 1.3 $
 #
 #*********************************************************************
 
@@ -37,7 +37,7 @@ ifdef IS_WIN32
   PATH_SEP=';'
   LIB_SUFFIX=dll
   INCLUDE_LIST+=$(JNI_HEADER_DIR)/win32 /usr/include/win32api
-  CFLAGS +=-D_WIN32
+  CFLAGS +=-D_WIN32	-mno_cygwin
 else
   PATH_SEP=':'
   LIB_SUFFIX=.so

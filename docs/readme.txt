@@ -2,7 +2,7 @@
                    Content Handlers for Image Loading
 
                        (c) ADI Limited 1998-1999
-                   (c) The Virtual Light Company 1999
+                   (c) The Virtual Light Company 1999-2002
 
 
 Content handlers are Java's method of adding support for different MIMEType
@@ -122,7 +122,6 @@ TODO:
 
 - Tidy up documentation (ie Provide some and the web page).
 
-Justin Couch, 9 Nov 1999
-couch@ccis.adisys.com.au (work)
-justin@vlc.com.au (home)
+Justin Couch, 20 Jan 2002
+justin@vlc.com.au 
 
