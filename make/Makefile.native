@@ -6,7 +6,7 @@
 # Lowest level common makefile for both native and Java code
 # 
 # Author: Justin Couch
-# Version: $Revision: 1.6 $
+# Version: $Revision: 1.7 $
 #
 #*********************************************************************
 
@@ -37,6 +37,7 @@ OS_NAME=$(shell uname)
 ifeq (, $(strip $(findstring CYGWIN, $(OS_NAME))))
   PATH_SEP=':'
   LIB_SUFFIX=so
+  LIB_PREFIX=lib
   INCLUDE_LIST+=$(JNI_HEADER_DIR)/unix
   CC_LINK_OPTIONS = -Wl -shared $(CFLAGS)
   ifdef LIBRARY_3RDPARTY
@@ -45,6 +46,7 @@ ifeq (, $(strip $(findstring CYGWIN, $(OS_NAME))))
 else
   PATH_SEP=';'
   LIB_SUFFIX=dll
+  LIB_PREFIX=
   INCLUDE_LIST+=$(JNI_HEADER_DIR)/win32 /usr/include/win32api
   CFLAGS +=-D_WIN32 -mno-cygwin
   CC_LINK_OPTIONS = -Wl --add-stdcall-alias -shared $(CFLAGS)
@@ -68,7 +70,7 @@ ifdef LIBRARY
   LIB_DIR   = $(DESTINATION)/$(LIBRARY)
   OBJ_FILE_LIST = $(SOURCE_FILES:%.c=%.o)
   OBJ_FILES = $(SOURCE_FILES:%.c=$(DESTINATION)/$(LIBRARY)/%.o)
-  LIB_FILES = $(LIB_DESTINATION)/$(LIBRARY).$(LIB_SUFFIX)
+  LIB_FILES = $(LIB_DESTINATION)/$(LIB_PREFIX)$(LIBRARY).$(LIB_SUFFIX)
 endif
 
 SOURCE_FILES  = $(filter  %.c,$(C_SOURCE))
@@ -115,9 +117,9 @@ $(LIB_DIR)/%.o : $(NATIVE_DIR)/$(LIBRARY)/%.c
 	$(MAKE) -k $(LIB_DIR)/$@
 
 # Rule 6. Building a .dll or .so from .o files.
-$(LIB_DESTINATION)/$(LIBRARY).$(LIB_SUFFIX): $(OBJ_FILES)
+$(LIB_DESTINATION)/$(LIB_PREFIX)$(LIBRARY).$(LIB_SUFFIX): $(OBJ_FILES)
 	$(PRINT) Building $@
-	cd $(LIB_DIR) && $(CC) $(CC_LINK_OPTIONS) -o $(LIB_DESTINATION)/$(LIBRARY).$(LIB_SUFFIX) $(3RDPARTY_LIBS) $(OBJ_FILES) 
+	cd $(LIB_DIR) && $(CC) $(CC_LINK_OPTIONS) -o $(LIB_DESTINATION)/$(LIB_PREFIX)$(LIBRARY).$(LIB_SUFFIX) $(3RDPARTY_LIBS) $(OBJ_FILES) 
 
 # 
 # Cleanups
