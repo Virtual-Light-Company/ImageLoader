@@ -6,7 +6,7 @@
 # Lowest level common makefile for both native and Java code
 # 
 # Author: Justin Couch
-# Version: $Revision: 1.4 $
+# Version: $Revision: 1.5 $
 #
 #*********************************************************************
 
@@ -28,46 +28,47 @@ JNI_HEADER_DIR  = $(JAVA_HOME)/include
 #
 CC=gcc
 CFLAGS=
-INCLUDE_LIST=$(INCLUDE_DIR) $(JNI_HEADER_DIR)
+INCLUDE_LIST=$(INCLUDES) $(INCLUDE_DIR) $(JNI_HEADER_DIR) 
 
 EMPTY =
 SPACE = $(EMPTY) $(EMPTY)
 
-IS_WIN32 = $(findstring "CYGWIN",`uname`)
-
-ifdef IS_WIN32
+ifeq ("cygwin", "$(strip $(OSTYPE))")
+  IS_WIN32=true
   PATH_SEP=';'
   LIB_SUFFIX=dll
   INCLUDE_LIST+=$(JNI_HEADER_DIR)/win32 /usr/include/win32api
-  CFLAGS +=-D_WIN32	-mno-cygwin
+  CFLAGS +=-D_WIN32 -mno-cygwin
+  CC_LINK_OPTIONS = -Wl --add-stdcall-alias -shared $(CFLAGS)
   ifdef LIBRARY_3RDPARTY
     3RDPARTY_LIBS = $(patsubst %,$(3RDPARTY_DLL_DIR)/lib%.dll,$(LIBRARY_3RDPARTY))
   endif
 else
   PATH_SEP=':'
-  LIB_SUFFIX=.so
+  LIB_SUFFIX=so
   INCLUDE_LIST+=$(JNI_HEADER_DIR)/unix
+  CC_LINK_OPTIONS = -Wl -shared $(CFLAGS)
   ifdef LIBRARY_3RDPARTY
     3RDPARTY_LIBS = $(patsubst %,-l%,$(LIBRARY_3RDPARTY))
   endif
 endif
 
-INCLUDES=$(subst $(SPACE),$(SPACE)-I, $(INCLUDE_LIST))
+INC_DIRS=$(subst $(SPACE),$(SPACE)-I, $(INCLUDE_LIST))
 
 #
 # Option listing for the various commands
 #
-CC_OPTIONS = -c -O2 $(INCLUDES) $(CFLAGS)
-CC_LINK_OPTIONS = -Wl,--add-stdcall-alias -shared $(CFLAGS)
+CC_OPTIONS = -c -O2 $(INC_DIRS) $(CFLAGS)
 
 #
 # Build rules.
 #
 
 ifdef LIBRARY
-	LIB_DIR   = $(DESTINATION)/$(LIBRARY)
-	OBJ_FILES = $(SOURCE_FILES:%.c=$(LIB_DIR)/%.o)
-	LIB_FILES = $(LIB_DESTINATION)/$(LIBRARY).$(LIB_SUFFIX)
+  LIB_DIR   = $(DESTINATION)/$(LIBRARY)
+  OBJ_FILE_LIST = $(SOURCE_FILES:%.c=%.o)
+  OBJ_FILES = $(SOURCE_FILES:%.c=$(DESTINATION)/$(LIBRARY)/%.o)
+  LIB_FILES = $(LIB_DESTINATION)/$(LIBRARY).$(LIB_SUFFIX)
 endif
 
 SOURCE_FILES  = $(filter  %.c,$(C_SOURCE))
@@ -83,8 +84,6 @@ LIB_LIST_BUILD = $(patsubst %,$(NATIVE_SRC_DIR)/%/.build,$(LIBRARY_LIST))
 # Rule 0. Applied when make is called without targets.
 all: $(LIB_DIR) $(OBJ_FILES) $(LIB_FILES)
 
-crap:
-	$(PRINT) 1 $(LIBRARY_3RDPARTY) 2 $(3RDPARTY_LIBS) 3 $(OBJ_FILES)
 	
 # Rule 1. If the destination dir is missing then create it
 $(LIB_DIR) :

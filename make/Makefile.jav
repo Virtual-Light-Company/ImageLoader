@@ -6,7 +6,7 @@
 # Lowest level common makefile for Java code
 #
 # Author: Justin Couch
-# Version: $Revision: 1.3 $
+# Version: $Revision: 1.4 $
 #
 #*********************************************************************
 
@@ -123,7 +123,9 @@ NONJAVA_FILES   = $(patsubst %.java,,$(SOURCE))
 CLASS_FILES     = $(JAVA_FILES:%.java=$(PACKAGE_DIR)/%.class)
 OTHER_FILES     = $(EXTRA:%=$(PACKAGE_DIR)/%)
 JNI_CLASS_FILES = $(JNI_SOURCE:%.java=$(PACKAGE_DIR)/%.class)
-JNI_HEADERS     = $(JNI_SOURCE:%.java=$(INCLUDE_DIR)/%.h)
+JNI_PKG_PREFIX  = $(subst .,_,$(PACKAGE))
+#JNI_HEADERS     = $(JNI_SOURCE:%.java=$(INCLUDE_DIR)/$(JNI_PKG_PREFIX)_%.h)
+JNI_HEADERS     = $(JNI_SOURCE:%.java=%.h)
 JAR_CLASS_FILES = $(patsubst %, %/*.*, $(JAR_CONTENT))
 
 JAR_CONTENT_CMD = -C $(JAR_TMP_DIR) . $(patsubst %, -C $(JAVA_SRC_DIR) %, $(EXTRA_FILES))
@@ -195,18 +197,28 @@ $(DESTINATION) :
 buildall : $(PLIST_BUILD)
 	$(PRINT) Done build.
 
-# Rule 2 Build JNI .h files. Invokes rule 7.
-jni : $(JNI_CLASS_FILES) $(JNI_HEADERS)
-
-# Rule 3. Change ".build" tag to "Makefile", thus call the package makefile
+# Rule 4. Change ".build" tag to "Makefile", thus call the package makefile
 # which in turn recalls this makefile with target all (rule 10).
 %.native :
-	$(PRINT) Building native $(subst .build,' ',$@)
+	$(PRINT) Building native $(subst .native,' ',$@)
 	@ $(MAKE) -k -f $(subst .native,Makefile,$@) jni
 
 # Rule 5. Call rule 2 for every package
-nativeall : $(JNI_LIST_BUILD)
+nativeall : $(DESTINATION) $(INCLUDE_DIR) $(LIB_DIR) $(JNI_LIST_BUILD)
 	$(PRINT) Done native headers
+
+# Rule 6. If the destination dir is missing then create it
+$(INCLUDE_DIR) :
+	$(PRINT) Missing include dir. Creating $(INCLUDE_DIR)
+	@ $(MAKEDIR) $(INCLUDE_DIR)
+
+# Rule 7. If the destination dir is missing then create it
+$(LIB_DIR) :
+	$(PRINT) Missing library dir. Creating $(LIB_DIR)
+	@ $(MAKEDIR) $(LIB_DIR)
+
+# Rule 8 Build JNI .h files. Invokes rule 6.
+jni : $(DESTINATION) $(JNI_CLASS_FILES) $(JNI_HEADERS)
 
 #
 # Specific dependency build rules
@@ -222,13 +234,10 @@ $(PACKAGE_DIR)/%.class : $(JAVA_SRC_DIR)/$(PACKAGE_LOC)/%.java
 	@ $(MAKE) -k $(PACKAGE_DIR)/$@
 
 # Rule 7. Building a JNI .h stub file from a .class file
-$(INCLUDE_DIR)/%.h : $(PACKAGE_DIR)/%.class
+%.h : %.class
 	$(PRINT) Creating header for $*
 	@ $(JAVAH) $(JAVAH_OPTIONS) $(PACKAGE).$*
 
-# Rule 8. Building a JNI .h stub file from a class file. Invokes rule 5.
-%.h : %.class
-	$(MAKE) -k $(JAVA_SRC_DIR)/$(PACKAGE_LOC)/$@
 
 # Rule 9. Default behaviour within a package: Simply copy the object from src
 # to classes. Note that the location of this rule is important. It must be after
@@ -303,9 +312,10 @@ javadoc :
 complete : clean buildall jar javadoc
 
 # Rule 17. Install the JAR files after we have created them
-install: $(JAR_INSTALL_DIR)
+install: 
 	$(PRINT) Copying JAR files to $(JAR_INSTALL_DIR)
 	$(COPY) $(JAR_DIR)/* $(JAR_INSTALL_DIR)
 
 # Rule 18. Copy the properties files to the classes directory
 properties: $(OTHER_FILES)
+
