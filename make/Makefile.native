@@ -6,7 +6,7 @@
 # Lowest level common makefile for both native and Java code
 # 
 # Author: Justin Couch
-# Version: $Revision: 1.7 $
+# Version: $Revision: 1.8 $
 #
 #*********************************************************************
 
@@ -38,10 +38,10 @@ ifeq (, $(strip $(findstring CYGWIN, $(OS_NAME))))
   PATH_SEP=':'
   LIB_SUFFIX=so
   LIB_PREFIX=lib
-  INCLUDE_LIST+=$(JNI_HEADER_DIR)/unix
+  INCLUDE_LIST+=$(JNI_HEADER_DIR)/linux
   CC_LINK_OPTIONS = -Wl -shared $(CFLAGS)
   ifdef LIBRARY_3RDPARTY
-    3RDPARTY_LIBS = $(patsubst %,-l%,$(LIBRARY_3RDPARTY))
+    3RDPARTY_LIBS = $(patsubst %,-l%, $(LIBRARY_3RDPARTY))
   endif
 else
   PATH_SEP=';'
@@ -55,7 +55,8 @@ else
   endif
 endif
 
-INC_DIRS=$(subst $(SPACE),$(SPACE)-I, $(INCLUDE_LIST))
+INCS=$(subst $(SPACE)$(SPACE),$(SPACE),$(INCLUDE_LIST))
+INC_DIRS=$(subst $(SPACE),$(SPACE)-I,$(INCS))
 
 #
 # Option listing for the various commands
