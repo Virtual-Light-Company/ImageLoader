@@ -158,7 +158,8 @@ public class ImageViewer extends Frame
             tracker.removeImage(img);
             tracker = null;
          }
-         else {
+         else
+         {
             // now use our content handlers
             Object o = connection.getContent();
             if (o instanceof Image)
@@ -198,23 +199,23 @@ public class ImageViewer extends Frame
    public void windowOpened(WindowEvent e)
    {
    }
-   
+
    public void windowClosed(WindowEvent e)
    {
    }
-   
+
    public void windowIconified(WindowEvent e)
    {
    }
-   
+
    public void windowDeiconified(WindowEvent e)
    {
    }
-   
+
    public void windowActivated(WindowEvent e)
    {
    }
-   
+
    public void windowDeactivated(WindowEvent e)
    {
    }
