@@ -87,7 +87,7 @@ public class gif extends ContentHandler
          ImageBuilder decoder = new ImageBuilder("gif");
 
          // now decode the image from the input stream
-         return decoder.decode(u.getInputStream());
+         return decoder.decode(u.getInputStream(), ImageBuilder.IMAGE_REQD);
       }
       else
       {
