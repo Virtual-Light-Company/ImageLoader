@@ -15,6 +15,8 @@ package vlc.net.content.image;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageProducer;
+import java.awt.image.Raster;
+import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.net.URLConnection;
 import java.net.ContentHandler;
@@ -32,7 +34,7 @@ import java.net.ContentHandler;
  * <P>
  *
  * @author  Justin Couch
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  */
 public class bmp extends ContentHandler
 {
@@ -51,7 +53,7 @@ public class bmp extends ContentHandler
         ImageBuilder decoder = new ImageBuilder("bmp");
 
         // now decode the image from the input stream
-        return decoder.decode(u.getInputStream());
+        return decoder.decode(u.getInputStream(), ImageBuilder.IMAGE_REQD);
     }
 
     /**
@@ -73,19 +75,30 @@ public class bmp extends ContentHandler
 
         Object ret_val = null;
 
-        for(int i = 0; i < classes.length; i++)
+        for(int i = 0; i < classes.length && (ret_val != null); i++)
         {
+            int decode_type = -1;
+
             if(classes[i].isInstance(ImageProducer.class))
             {
-                //ret_val = decoder.createProducer(u.getInputStream());
-                break;
+                decode_type = ImageBuilder.IMAGEPRODUCER_REQD;
             }
             else if(classes[i].isInstance(Image.class) ||
                     classes[i].isInstance(BufferedImage.class))
             {
-                ret_val = decoder.decode(u.getInputStream());
-                break;
+                decode_type = ImageBuilder.IMAGE_REQD;
             }
+            else if(classes[i].isInstance(WritableRaster.class))
+            {
+                decode_type = ImageBuilder.WRITABLE_RASTER_REQD;
+            }
+            else if(classes[i].isInstance(Raster.class))
+            {
+                decode_type = ImageBuilder.RASTER_REQD;
+            }
+
+            if(decode_type != -1)
+                ret_val = decoder.decode(u.getInputStream(), decode_type);
         }
 
         return ret_val;

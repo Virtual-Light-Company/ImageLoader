@@ -24,17 +24,19 @@ import java.awt.image.*;
  * <A HREF="http://www.gnu.org/copyleft/lgpl.html">GNU LGPL</A>
  *
  * @author  Justin Couch
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  */
 class ImageBuffer
     implements ImageProducer
 {
+    /** size of chunk to allocate */
+    private static final int MEM_LIMIT = 3000000;
+
     /** maximum number of allowed images consumers */
     private static final int MAX_CONSUMERS = 20;
 
     /** The common colour model for all uses */
-    private static ColorModel COLOR_MODEL =
-        new DirectColorModel(32, 0xFF0000, 0xFF00, 0xFF, 0xFF000000);
+    private ColorModel colorModel;
 
     /** List of current registered consumers */
     private ImageConsumer[] consumers;
@@ -63,11 +65,29 @@ class ImageBuffer
      * @param width The image width
      * @param height The image height
      */
-    ImageBuffer(int width, int height)
+    ImageBuffer(int width, int height, int numComponents)
     {
         // create the default ColorModel
-        // note that we are assuming that each pixel is stored in a 32 bit
-        // integer in the form ARGB
+        switch(numComponents) {
+            case 1:
+                colorModel = new DirectColorModel(8, 0, 0, 0xFF, 00);
+                break;
+
+            case 2:
+                colorModel = new DirectColorModel(16, 0, 0xFF00, 0xFF, 0);
+                break;
+
+            case 3:
+                colorModel =
+                    new DirectColorModel(24, 0xFF0000, 0xFF00, 0xFF, 0);
+
+                break;
+
+            case 4:
+                colorModel =
+                    new DirectColorModel(32, 0xFF0000, 0xFF00, 0xFF, 0xFF000000);
+                break;
+        }
 
         // set image dimensions
         this.width = width;
@@ -122,7 +142,6 @@ class ImageBuffer
             }
             else
                 currentChunk++;
-
         }
         while(!found);
 
@@ -232,7 +251,7 @@ class ImageBuffer
 
         // set the ColorModel to be used
         for(i = 0; i < count; i++)
-            consumers[i].setColorModel(COLOR_MODEL);
+            consumers[i].setColorModel(colorModel);
 
         // set the hints to let all consumers know that the data will be sent
         // in top down left to right order
@@ -253,7 +272,7 @@ class ImageBuffer
                                        thisRow,
                                        width,
                                        rowsForChunk[i],
-                                       COLOR_MODEL,
+                                       colorModel,
                                        data[i],
                                        0,
                                        width);
@@ -286,7 +305,7 @@ class ImageBuffer
         ic.setDimensions(width , height);
 
         // set the ColorModel to be used
-        ic.setColorModel(COLOR_MODEL);
+        ic.setColorModel(colorModel);
 
         // set the hints to let all consumers know that the data will be sent
         // in top down left to right order
@@ -304,7 +323,7 @@ class ImageBuffer
                          thisRow,
                          width,
                          rowsForChunk[i],
-                         COLOR_MODEL,
+                         colorModel,
                          data[i],
                          0,
                          width);
@@ -328,9 +347,6 @@ class ImageBuffer
      */
     private void allocateBuffer()
     {
-        // size of chunk to allocate
-        final int MEM_LIMIT = 3000000;
-
         // assume no more than 100 chunks, but can allocate more if needed
         int[][] chunkPtrs = new int[100][];
 
@@ -355,7 +371,7 @@ class ImageBuffer
                 failed = false;
                 try
                 {
-                    if (memNeeded > memory_limit)
+                    if(memNeeded > memory_limit)
                     {
                         rowsAllocated = memory_limit / width;
                         oneChunk = new int[rowsAllocated * width];
@@ -366,7 +382,7 @@ class ImageBuffer
                         oneChunk = new int[memNeeded];
                     }
                 }
-                catch (OutOfMemoryError e)
+                catch(OutOfMemoryError e)
                 {
                     failed = true;
                     // reduce memory by 1/3 and try again

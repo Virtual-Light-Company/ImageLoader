@@ -14,8 +14,12 @@ package vlc.net.content.image;
 // Standard imports
 import java.awt.Image;
 import java.awt.Toolkit;
+
 import java.awt.image.*;
 import java.io.*;
+
+// Application specific imports
+// none
 
 /**
  * This is a generic decoder class that will load and create an image
@@ -31,10 +35,26 @@ import java.io.*;
  * <A HREF="http://www.gnu.org/copyleft/lgpl.html">GNU LGPL</A>
  *
  * @author  Justin Couch
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  */
 public class ImageBuilder
 {
+    /**
+     * Flag for requesting the decoded as a BufferedImage. If possible, this
+     * will generate a BufferedImage.
+     */
+    public static final int IMAGE_REQD = 1;
+
+    /** Flag for requesting the decoded as a ImageProducer */
+    public static final int IMAGEPRODUCER_REQD = 2;
+
+    /** Flag for requesting the decoded as a non-writable Raster */
+    public static final int RASTER_REQD = 3;
+
+    /** Flag for requesting the decoded image as a WritableRaster  */
+    public static final int WRITABLE_RASTER_REQD = 4;
+
+
     /** Flag to say we are using JDK 1.1 */
     private static final boolean jdk1_1;
 
@@ -42,13 +62,13 @@ public class ImageBuilder
     private static final boolean hasNativeThreads;
 
     /** Valid image types from the underlying native lib */
-    private static String[] validTypes;
+    private static final String[] validTypes;
 
     /** the type of image we are decoding */
-    private String imageType = null;
+    private String imageType;
 
     /** used for synchronising while waiting for data to be sent */
-    private Object finishLock = new Object();
+    private Object finishLock;
 
     /** has all the data been sent to the native code yet? */
     private boolean sendingData;
@@ -61,15 +81,12 @@ public class ImageBuilder
     {
         validTypes = ImageDecoder.getFileFormats();
 
+        String vm = System.getProperty("java.vm.info","");
         String ver = System.getProperty("java.version");
-        String os_name = System.getProperty("os.name");
-        String os_arch = System.getProperty("os.arch");
 
         jdk1_1 = ver.startsWith("1.1");
 
-        hasNativeThreads = (os_name.startsWith("Win") &&
-                            os_arch.startsWith("x86")) ||
-                           !(ver.startsWith("1.1") || ver.startsWith("1.0"));
+        hasNativeThreads = vm.indexOf("green") == -1;
     }
 
     /**
@@ -86,6 +103,7 @@ public class ImageBuilder
             throw new IllegalArgumentException("No image type given");
 
         // save type
+        finishLock = new Object();
         imageType = type;
         boolean valid = false;
 
@@ -106,13 +124,15 @@ public class ImageBuilder
 
     /**
      * Decodes the given image stream in the appropriate image type and return
-     * it as an image.
+     * it as the object type requested. If this is JDK 1.1, ignore the request
+     * if it is for a Raster object, and only return an Image.
      *
      * @param is input stream containing the image data in specified format.
+     * @param type The requested image output type
      * @return the decoded image
      * @throws IOException on errors decoding the image.
      */
-    public Image decode(InputStream is)
+    public Object decode(InputStream is, int type)
         throws IOException
     {
         int i;
@@ -125,6 +145,8 @@ public class ImageBuilder
 
         int width;
         int height;
+        int num_components;
+
         ImageBuffer imBuffer = null;
         BufferFiller filler = null;
 
@@ -161,9 +183,10 @@ public class ImageBuilder
             // decoding has been started so we can now get image dimensions
             width = decoder.getImageWidth(thread_id);
             height = decoder.getImageHeight(thread_id);
+            num_components = decoder.getNumColorComponents(thread_id);
 
-            if(jdk1_1)
-                imBuffer = new ImageBuffer(width, height);
+            if(jdk1_1 || (type == IMAGEPRODUCER_REQD))
+                imBuffer = new ImageBuffer(width, height, num_components);
 
             data = createIntArray(width*height);
 
@@ -171,14 +194,21 @@ public class ImageBuilder
             int[] tmpBuffer = new int[width];
 
             // now extract the image data
-            for(i=0; i<height; i++)
+            if(jdk1_1 || (type == IMAGEPRODUCER_REQD))
             {
-                decoder.getNextImageRow(thread_id, tmpBuffer);
-
-                /* JDK1.1 - uncomment this, and comment out the line directly below
-                imBuffer.setImageRow(i, tmpBuffer);
-                */
-                System.arraycopy(tmpBuffer, 0, data, i*width, width);
+                for(i = 0; i < height; i++)
+                {
+                    decoder.getNextImageRow(thread_id, tmpBuffer);
+                    imBuffer.setImageRow(i, tmpBuffer);
+                }
+            }
+            else
+            {
+                for(i = 0; i < height; i++)
+                {
+                    decoder.getNextImageRow(thread_id, tmpBuffer);
+                    System.arraycopy(tmpBuffer, 0, data, i*width, width);
+                }
             }
         }
         catch(InternalError e1)
@@ -225,21 +255,42 @@ public class ImageBuilder
             decoder.releaseThreadId(thread_id);
         }
 
-        Image ret_val = null;
+        Object ret_val = null;
 
-        if(jdk1_1)
+        if(type == IMAGEPRODUCER_REQD)
+        {
+            ret_val = imBuffer;
+        }
+        else if(jdk1_1)
+        {
             ret_val = Toolkit.getDefaultToolkit().createImage(imBuffer);
+        }
         else
         {
-            ColorModel cModel = ColorModel.getRGBdefault();
-            DataBufferInt intBuf = new DataBufferInt(data,(width * height));
-            SampleModel sModel = cModel.createCompatibleSampleModel(width, height);
+            ColorModel cm = getColorModel(num_components);
+            SampleModel sm = cm.createCompatibleSampleModel(width, height);
+            DataBufferInt buffer = new DataBufferInt(data, (width * height));
 
-            // create our raster
-            WritableRaster raster = Raster.createWritableRaster(sModel, intBuf, null);
+            switch(type)
+            {
+                case IMAGE_REQD:
+                    // create our raster
+                    WritableRaster raster =
+                        Raster.createWritableRaster(sm, buffer, null);
 
-            // now create and return our buffered image
-            ret_val = new BufferedImage(cModel, raster, false, null);
+                    // now create and return our buffered image
+                    ret_val = new BufferedImage(cm, raster, false, null);
+                    break;
+
+                case RASTER_REQD:
+                    ret_val = Raster.createRaster(sm, buffer, null);
+                    break;
+
+                case WRITABLE_RASTER_REQD:
+                    ret_val = Raster.createWritableRaster(sm, buffer, null);
+                    break;
+            }
+
         }
 
         return ret_val;
@@ -298,6 +349,39 @@ public class ImageBuilder
         // if we are here then we have done some garbage collection
         // so try allocating memory again.
         return new int[size];
+    }
+
+    /**
+     * Create a colour model instance for the number of components
+     *
+     * @param numComponents The number of components in the image
+     * @return A corresponding colour model for the information
+     */
+    private ColorModel getColorModel(int numComponents)
+    {
+        ColorModel ret_val = null;
+
+        switch(numComponents) {
+            case 1:
+                ret_val = new DirectColorModel(8, 0, 0, 0xFF, 00);
+                break;
+
+            case 2:
+                ret_val = new DirectColorModel(16, 0, 0xFF00, 0xFF, 0);
+                break;
+
+            case 3:
+                ret_val = new DirectColorModel(24, 0xFF0000, 0xFF00, 0xFF, 0);
+
+                break;
+
+            case 4:
+                ret_val =
+                    new DirectColorModel(32, 0xFF0000, 0xFF00, 0xFF, 0xFF000000);
+                break;
+        }
+
+        return ret_val;
     }
 }
 

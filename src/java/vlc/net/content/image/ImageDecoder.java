@@ -33,7 +33,7 @@ package vlc.net.content.image;
  * <P>
  *
  * @author  Justin Couch
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  */
 public class ImageDecoder
 {
@@ -214,6 +214,16 @@ public class ImageDecoder
      * @exception InternalError on unexpected error.
      */
     native int getImageHeight(int id)
+        throws InternalError;
+
+    /**
+     * Returns the number of components in the color model used by
+     * the image. This will be a value of 1 to 4.
+     * @param id identify this thread to the native library
+     * @return A value 1 - 4
+     * @exception InternalError on unexpected error.
+     */
+    native int getNumColorComponents(int id)
         throws InternalError;
 
     /**

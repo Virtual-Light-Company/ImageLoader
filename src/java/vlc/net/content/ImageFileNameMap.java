@@ -38,58 +38,62 @@ import java.io.IOException;
  * @version    1.00 30th November 1998
  */
 public class ImageFileNameMap
-  implements FileNameMap
+    implements FileNameMap
 {
-  /** previous filename map */
-  private FileNameMap prevMap;
+    /** previous filename map */
+    private FileNameMap prevMap;
 
-  /**
-   * Constructor.
-   * Constructs a new filename map for handling images.
-   */
-  public ImageFileNameMap()
-  {
-    prevMap = null;
-  }
+    /**
+    * Constructor.
+    * Constructs a new filename map for handling images.
+    */
+    public ImageFileNameMap()
+    {
+        prevMap = null;
+    }
 
-  /**
-   * Constructor.
-   * This will chain this filename map to the given map.
-   * Processing in this filename map will have preference
-   * to the previous maps.
-   * @param map previous filename maps
-   */
-  public ImageFileNameMap(FileNameMap map)
-  {
-    prevMap = map;
-  }
+    /**
+     * Constructor.
+     * This will chain this filename map to the given map.
+     * Processing in this filename map will have preference
+     * to the previous maps.
+     * @param map previous filename maps
+     */
+    public ImageFileNameMap(FileNameMap map)
+    {
+        prevMap = map;
+    }
 
-  /**
-   * Returns the content type for the file based on the
-   * given filename.  The content type is determined
-   * from the filename extension.
-   * @param fileName name of the file.
-   * @return MIME content type of this filename, or
-   * null if the content type is unknown
-   */
-  public String getContentTypeFor(String fileName)
-  {
-    if(fileName.toUpperCase().endsWith(".PNG"))
-      return "image/png";
-    else if(fileName.toUpperCase().endsWith(".TIF"))
-      return "image/tiff";
-    else if(fileName.toUpperCase().endsWith(".TIFF"))
-      return "image/tiff";
-    else if(fileName.toUpperCase().endsWith(".TGA"))
-      return "image/targa";
-    else if(fileName.toUpperCase().endsWith(".BMP"))
-      return "image/bmp";
+    /**
+     * Returns the content type for the file based on the
+     * given filename.  The content type is determined
+     * from the filename extension.
+     * @param fileName name of the file.
+     * @return MIME content type of this filename, or
+     * null if the content type is unknown
+     */
+    public String getContentTypeFor(String fileName)
+    {
+        if(fileName.toUpperCase().endsWith(".PNG"))
+            return "image/png";
+        else if(fileName.toUpperCase().endsWith(".TIF"))
+            return "image/tiff";
+        else if(fileName.toUpperCase().endsWith(".TIFF"))
+            return "image/tiff";
+        else if(fileName.toUpperCase().endsWith(".TGA"))
+            return "image/targa";
+        else if(fileName.toUpperCase().endsWith(".BMP"))
+            return "image/bmp";
+        else if(fileName.toUpperCase().endsWith(".PPM"))
+            return "image/x-portable-pixmap";
+        else if(fileName.toUpperCase().endsWith(".PGM"))
+            return "image/x-portable-graymap";
 
-    // handle previous filename maps
-    if (prevMap != null)
-      return prevMap.getContentTypeFor(fileName);
+        // handle previous filename maps
+        if(prevMap != null)
+            return prevMap.getContentTypeFor(fileName);
 
-    // return null if unsure.
-    return null;
-  }
+        // return null if unsure.
+        return null;
+    }
 }
