@@ -6,7 +6,7 @@
 # Lowest level common makefile for Java code
 #
 # Author: Justin Couch
-# Version: $Revision: 1.2 $
+# Version: $Revision: 1.3 $
 #
 #*********************************************************************
 
@@ -40,6 +40,7 @@ else
   JAR      = jar
   JAVADOC  = javadoc
   JAVAH	   = javah
+  JAR_INSTALL_DIR = $(HOME)/xj3d
 endif
 
 EMPTY         =
