@@ -6,7 +6,7 @@
 # Lowest level common makefile for both native and Java code
 # 
 # Author: Justin Couch
-# Version: $Revision: 1.8 $
+# Version: $Revision: 1.9 $
 #
 #*********************************************************************
 
@@ -49,7 +49,7 @@ else
   LIB_PREFIX=
   INCLUDE_LIST+=$(JNI_HEADER_DIR)/win32 /usr/include/win32api
   CFLAGS +=-D_WIN32 -mno-cygwin
-  CC_LINK_OPTIONS = -Wl --add-stdcall-alias -shared $(CFLAGS)
+  CC_LINK_OPTIONS = -Wl,--add-stdcall-alias -shared $(CFLAGS)
   ifdef LIBRARY_3RDPARTY
     3RDPARTY_LIBS = $(patsubst %,$(3RDPARTY_DLL_DIR)/lib%.dll,$(LIBRARY_3RDPARTY))
   endif
