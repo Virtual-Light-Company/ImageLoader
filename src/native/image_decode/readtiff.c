@@ -196,7 +196,7 @@ static void start_input_tiff(Parameters params)
     fd = fileno(source->pub.fptr);
     if(fd >= MAX_FD)
        ERREXIT(ERR_FD_SIZE);
-    
+
     /* read in the file into memory */
     buffer_file(fd);
 
@@ -464,9 +464,8 @@ static void free_buffer(file_buffer_ptr ptr)
 {
     int i;
 
-printf("free_buffer\n");
     /* free each of the rows */
-    for(i=0; i<ptr->num_rows; i++)
+    for(i = 0; i < ptr->num_rows; i++)
         free(ptr->rows[i]);
 
     /* free the array of row pointers */
@@ -482,15 +481,14 @@ static int pipeClose(thandle_t fd)
 {
     file_buffer_ptr ptr = buffers[(int)fd];
 
-printf("pipe close %d\n", fd);
     /* assume that the file descriptor will be closed elsewhere */
 
     /* however, free memory as it is assumed that this is a general */
     /* cleanup function */
     free_buffer(ptr);
     free(ptr);
-
     buffers[(int)fd] = NULL;
+
     return 0;
 }
 
@@ -564,9 +562,7 @@ static void buffer_file(int fd)
     if(buffers[fd])
         printf("pre-allocated buffer!\n");
 
-printf("buffering file %d\n", fd);
     buffers[fd] = (file_buffer_ptr) malloc(sizeof(file_buffer));
-
     ptr = buffers[fd];
 
     if(ptr)
@@ -601,6 +597,8 @@ printf("buffering file %d\n", fd);
                     if(tmp_ptr)
                     {
                         memcpy(tmp_ptr, ptr->rows, ptr->current_row * sizeof(char *));
+                        free(ptr->rows);
+
                         ptr->rows = tmp_ptr;
                         ptr->num_rows = ptr->current_row+1;
                     }
