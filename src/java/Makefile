@@ -1,19 +1,37 @@
 #*********************************************************************
 #
-#  (C) 2000 Geotecnical Software Services - GeoSoft
+#  (C) 2002 Justin Couch
+#  http://www.vlc.com.au/~justin/
 # 
+# Makefile for the native code libraries
+#
+# Author: Justin Couch
+# Version: $Revision: 1.2 $
+#
 #*********************************************************************
 
-PACKAGES = \
+# Names of packages to be compiled. These are declared in the order that
+# they are to be compiled in. We create one at a time
+BUILD_ORDER = \
 	 vlc.net.content.image \
 	 vlc.net.content 
 
-NODOC_PACKAGES = \
+# List of packages that have native code libraries in use and require
+# JNI header generation
+NATIVE_PACKAGES = vlc.net.content.image
 
-JARS =
+# Names of packages that we want included in the javadoc
+JAVADOC_PACKAGES = \
+	 vlc.net.content.image \
+	 vlc.net.content 
 
+# Names of JAR files we want to create
+JARS = imageloader.jar
+
+# 3rd party libraries that need including.
 JARS_3RDPARTY=
 
+# Definitions of setup information if we are making a self-executable JAR
 MAIN_CLASS     = 
 MAIN_PACKAGE   = 
 MAIN_JAR       = imageloader.jar
@@ -30,4 +48,15 @@ HEADER      = 'VLC ImageLoader API'
 BOTTOM      = '<font size=2>Copyright &copy; 2000 - The Virtual Light Company \
 		   <a href=\"http://www.vlc.com.au\">VLC</a></font>'
 
-include $(PROJECT_ROOT)/make/Makefile.java 
+# A list of the local directories that contain other Javadoc that we want
+# to link to. For example we link to the JDK, JAXP, SAI and JUnit Javadocs
+# here. Note that these *must* be full URLs and not just local directory 
+# references. If your directory path contains a space in it, you may be in
+# trouble. We haven't tested it with that. Try using double quotes inside
+# the single quotes to get the space treated in the file name
+#LINK_URLS   = 'file:///c:/java/jaxp-1.1/docs/api/' \
+#              'file:///c:/java/junit3.5/javadoc/' \
+#			  'file:///c:/java/jdk1.3/docs/api/' \
+#			  'file:///c:/java/j3d/1.2.1/html/'
+
+include $(PROJECT_ROOT)/make/Makefile.jav 
