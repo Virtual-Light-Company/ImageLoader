@@ -14,11 +14,11 @@
 
 
 /****************************************************************************\
-This is the driver for the image decoder library.  If you are looking at
-adding a new image format, you do not need to modify this file.
-To add a new image format, copy one of the existing image format files
-e.g. readpng.c, and make appropriate modifications to the header of
-decode_image.h
+    This is the driver for the image decoder library.  If you are looking at
+    adding a new image format, you do not need to modify this file.
+    To add a new image format, copy one of the existing image format files
+    e.g. readpng.c, and make appropriate modifications to the header of
+    decode_image.h
 \****************************************************************************/
 
 #include "decode_image.h"
@@ -49,7 +49,9 @@ static void throw_exception(JNIEnv *env, char *exception, char *message)
    (*env)->ExceptionClear(env);
 
    newExcCls = (*env)->FindClass(env, exception);
-   if (newExcCls == 0) { /* Unable to find the new exception class, give up. */
+   if (newExcCls == 0)
+   {
+       /* Unable to find the new exception class, give up. */
        return;
    }
 
@@ -84,12 +86,15 @@ Java_vlc_net_content_image_ImageDecoder_getFileFormats
    jarray string_array;
 
    /* create an array of strings and initialise it to contain NULL objects */
-   string_array = (*env)->NewObjectArray(env, NUM_KNOWN_TYPES,
-                             (*env)->FindClass(env, "java/lang/String"), NULL);
+   string_array = (*env)->NewObjectArray(env, 
+                                         NUM_KNOWN_TYPES,
+                                         (*env)->FindClass(env, "java/lang/String"),
+                                         NULL);
 
    /* now fill the array with string objects representing the allowed */
    /* image types */
-   for(i=0; i<NUM_KNOWN_TYPES; i++) {
+   for(i=0; i<NUM_KNOWN_TYPES; i++)
+   {
       (*env)->SetObjectArrayElement(env, string_array, i,
                    (*env)->NewStringUTF(env, available_types[i].type_string));
    }
@@ -123,7 +128,8 @@ Java_vlc_net_content_image_ImageDecoder_initialize
    int fail;
 
    /* ensure we are only called once */
-   if (init) {
+   if (init)
+   {
       throw_exception(env, "java/lang/InternalError",
                            "Initialize called more than once");
    }
@@ -131,7 +137,8 @@ Java_vlc_net_content_image_ImageDecoder_initialize
    init = JNI_TRUE;
 
    /* ensure that the number of threads is valid */
-   if (num_threads <= 0) {
+   if (num_threads <= 0)
+   {
       sprintf(buf, "Illegal number of threads: %d", num_threads);
       throw_exception(env, "java/lang/InternalError", buf);
    }
@@ -141,7 +148,8 @@ Java_vlc_net_content_image_ImageDecoder_initialize
 
    /* allocate memory for num_threads lots of params */
    param_list = (Parameters *) calloc(num_threads, sizeof(Parameters));
-   if (!param_list) {
+   if (!param_list)
+   {
       /* No memory?, hopefully we'll never see this */
       throw_exception(env, "java/lang/OutOfMemoryError", NULL);
    }
@@ -150,14 +158,17 @@ Java_vlc_net_content_image_ImageDecoder_initialize
    fd_list = (int **) malloc(num_threads * sizeof(int *));
 
    /* Allocate the individual rows */
-   if (fd_list) {
+   if (fd_list)
+   {
       fail = JNI_FALSE;
       row = 0;
-      while((!fail && (row < num_threads))) {
+      while((!fail && (row < num_threads)))
+      {
          fd_list[row] = (int *) malloc(2 * sizeof(int));
 
          /* check to make sure memory allocation suceeded */
-         if (fd_list[row] == NULL) {
+         if (fd_list[row] == NULL)
+         {
             for(i=0; i<row; i++)
                free(fd_list[i]);
             free(fd_list);
@@ -174,7 +185,8 @@ Java_vlc_net_content_image_ImageDecoder_initialize
    if (fail)
       fd_list = NULL;
 
-   if (!fd_list) {
+   if (!fd_list)
+   {
       /* No memory?, hopefully we'll never see this */
       throw_exception(env, "java/lang/OutOfMemoryError", NULL);
    }
@@ -222,19 +234,29 @@ Java_vlc_net_content_image_ImageDecoder_initDecoder
    str = (*env)->GetStringUTFChars(env, image_type, 0);
 
    /* search for the given image type and if found, perform initialisation */
-   do {
-      if (STRSAME(str, available_types[i].type_string)) {
+   do
+   {
+      if (STRSAME(str, available_types[i].type_string))
+      {
+         /* If there is something at this ID spot already, throw it away
+          * and start again. */
+         if(param_list[id])
+            free(param_list[id]);
+
          param_list[id] = available_types[i].init_func();
          params = param_list[id];
-         if (params != NULL) {
+         if (params != NULL)
+         {
             init_successful = JNI_TRUE;
          }
-         else {
+         else
+         {
             /* No memory?, hopefully we'll never see this */
             throw_exception(env, "java/lang/OutOfMemoryError", NULL);
          }
       }
-      else {
+      else
+      {
          i++;
       }
    } while(!init_successful && (i<NUM_KNOWN_TYPES));
@@ -258,9 +280,11 @@ Java_vlc_net_content_image_ImageDecoder_initDecoder
    /* safely use a pipe to transfer data incase the reading end of */
    /* the pipe blocks.  So we use a temporary file to store the */
    /* image data and read from that file */
-   if (use_temp_file) {
+   if (use_temp_file)
+   {
       /* create a temporary file and open it for writing */
-      for( ; ; ) {
+      for( ; ; )
+      {
          /* generate a name */
          tmpnam(tmpname);
 
@@ -277,9 +301,11 @@ Java_vlc_net_content_image_ImageDecoder_initDecoder
       /* all descriptors referencing the file are closed */
       unlink(tmpname);
    }
-   else {
+   else
+   {
       /* prepare for receiving data */
-      if (pipe(fd) == -1) {
+      if (pipe(fd) == -1)
+      {
          /* throw exception */
          throw_exception(env, "java/lang/InternalError",
                          "Could not create pipe");
@@ -324,12 +350,13 @@ Java_vlc_net_content_image_ImageDecoder_sendData
 
    fd = fd_list[id];
 
-   if (size != -1) {
+   if (size != -1)
+   {
       /* grab data elements */
       ptr = (*env)->GetByteArrayElements(env, data, 0);
 
       /* a blocking write to the pipe */
-      if ( (err = write(fd[1], (void *) ptr, (size_t) size)) == -1)
+      if ((err = write(fd[1], (void *) ptr, (size_t) size)) == -1)
       {
          /* error occured, so close the pipe */
          if (errno != EBADF)
@@ -338,7 +365,8 @@ Java_vlc_net_content_image_ImageDecoder_sendData
 
       (*env)->ReleaseByteArrayElements(env, data, ptr, 0);
    }
-   else {
+   else
+   {
       /* at end of data, so close pipe */
       close(fd[1]);
    }
@@ -367,13 +395,13 @@ Java_vlc_net_content_image_ImageDecoder_startDecoding
 {
    Parameters params;
 
-   if (!init) {
+   if (!init)
+   {
       throw_exception(env, "java/lang/InternalError",
                            "Library has not yet been initialised");
    }
 
    params = param_list[id];
-
    params->start_input(params);
 
    if (params->error)
@@ -458,7 +486,6 @@ Java_vlc_net_content_image_ImageDecoder_getNumColorComponents
    return (jint) params->numComponents;
 }
 
-
 /*
  * Desc:      Returns the next row of the image.  This function will keep
  *            track of which is the current row to return.
@@ -486,15 +513,14 @@ Java_vlc_net_content_image_ImageDecoder_getNextImageRow
 
    ptr = (*env)->GetIntArrayElements(env, pixel_row, 0);
 
-   /* we want to get data returned in this data */
    params->buffer = ptr;
 
-   /* retrieve data */
-   /* data will be returned as ints in ARGB format */
    params->get_pixel_row(params);
    params->row_num++;
 
    (*env)->ReleaseIntArrayElements(env, pixel_row, ptr, 0);
+
+   params->buffer = NULL;
 
    if (params->error)
       throw_exception(env, "java/lang/InternalError", params->error_msg);
@@ -521,6 +547,10 @@ Java_vlc_net_content_image_ImageDecoder_finishDecoding
 (JNIEnv *env, jobject obj, jint id)
 {
    Parameters params;
+   int* fd;
+
+   fd = fd_list[id];
+   close(fd[0]);
 
    params = param_list[id];
 
@@ -530,4 +560,3 @@ Java_vlc_net_content_image_ImageDecoder_finishDecoding
       params->finish_input(params);
    }
 }
-
