@@ -25,15 +25,25 @@ include $(PROJECT_ROOT)/make/Makefile.inc
 
 VERSION=1.1
 
-all: jar lib javadoc
+all: jar libs javadoc
+
+class:
+	cd $(JAVA_DIR) && make buildall
 
 jar:
 	cd $(JAVA_DIR) && make buildall
+	cd $(JAVA_DIR) && make jar
 
 javadoc:
 	cd $(JAVA_DIR) && make javadoc
 
-lib:
+jni:
 	cd $(JAVA_DIR) && make jni
-	cd $(NATIVE_DIR) && make all
+
+libs:
+	cd $(JAVA_DIR) && make nativeall
+	cd $(NATIVE_DIR) && make buildall
     
+clean:
+	cd $(JAVA_DIR) && make clean
+	cd $(NATIVE_DIR) && make clean

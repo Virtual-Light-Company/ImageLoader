@@ -27,12 +27,18 @@ VERSION=1.1
 
 all: jar libs javadoc
 
+class:
+	cd $(JAVA_DIR) && make buildall
+
 jar:
 	cd $(JAVA_DIR) && make buildall
 	cd $(JAVA_DIR) && make jar
 
 javadoc:
 	cd $(JAVA_DIR) && make javadoc
+
+jni:
+	cd $(JAVA_DIR) && make jni
 
 libs:
 	cd $(JAVA_DIR) && make nativeall
