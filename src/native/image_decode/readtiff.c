@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                     The Virtual Light Company Copyright (c) 1999 - 2000
+ *                     The Virtual Light Company Copyright(c) 1999 - 2000
  *                                         C Source
  *
  * This code is licensed under the GNU Library GPL. Please read license.txt
@@ -47,9 +47,9 @@ typedef struct _tiff_source_struct {
  * Read one row of pixels.
  * This version is for reading 8-bit colormap indexes
  */
-static void get_row_tiff (Parameters params)
+static void get_row_rgba(Parameters params)
 {
-    tiff_source_ptr source = (tiff_source_ptr) params;
+    tiff_source_ptr source = (tiff_source_ptr)params;
     unsigned int i;
     uint32 tmp;
     register uint32 *inptr;
@@ -57,20 +57,20 @@ static void get_row_tiff (Parameters params)
     jint a, r, g, b;
 
     inptr = source->raster + source->pub.width * source->current_row;
-
     data = source->pub.buffer;
 
     /* put each pixel into the buffer to send back to java */
-    for(i = 0; i < source->pub.width; i++) {
+    for(i = 0; i < source->pub.width; i++)
+    {
         /* extract components from byte array and store them */
         /* in the int array which is accessible by caller */
         /* Note that png stores bytes in RGBA format */
         tmp = *inptr++;
 
-        a = (jint) ((tmp >> 24) & 0xff);
-        r = (jint) ((tmp >>  0) & 0xff);
-        g = (jint) ((tmp >>  8) & 0xff);
-        b = (jint) ((tmp >> 16) & 0xff);
+        a =(jint)((tmp >> 24) & 0xff);
+        r =(jint)((tmp >>  0) & 0xff);
+        g =(jint)((tmp >>  8) & 0xff);
+        b =(jint)((tmp >> 16) & 0xff);
 
         /* Required to return data in ARGB format */
         data[i] = (a << 24) + (r << 16) + (g << 8) + b;
@@ -79,14 +79,69 @@ static void get_row_tiff (Parameters params)
     source->current_row--;
 }
 
+static void get_row_rgb(Parameters params)
+{
+    tiff_source_ptr source = (tiff_source_ptr)params;
+    unsigned int i;
+    uint32 tmp;
+    register uint32 *inptr;
+    jint *data;
+    jint r, g, b;
+
+    inptr = source->raster + source->pub.width * source->current_row;
+    data = source->pub.buffer;
+
+    /* put each pixel into the buffer to send back to java */
+    for(i = 0; i < source->pub.width; i++)
+    {
+        /* extract components from byte array and store them */
+        /* in the int array which is accessible by caller */
+        /* Note that tiff stores bytes in RGBA format */
+        tmp = *inptr++;
+
+        r =(jint)((tmp >>  0) & 0xff);
+        g =(jint)((tmp >>  8) & 0xff);
+        b =(jint)((tmp >> 16) & 0xff);
+
+        /* Required to return data in ARGB format */
+        data[i] = (r << 16) + (g << 8) + b;
+    }
+
+    source->current_row--;
+}
+
+static void get_row_gray(Parameters params)
+{
+    tiff_source_ptr source = (tiff_source_ptr)params;
+    unsigned int i;
+    uint32 tmp;
+    register uint32 *inptr;
+    jint *data;
+
+    inptr = source->raster + source->pub.width * source->current_row;
+    data = source->pub.buffer;
+
+    /* put each pixel into the buffer to send back to java */
+    for(i = 0; i < source->pub.width; i++)
+    {
+        /* Note that tiff stores bytes in RGBA format */
+        tmp = *inptr++;
+
+        data[i] = (jint)(tmp & 0xff);
+    }
+
+    source->current_row--;
+}
 
 /*
  * Read the file header; return image size and component count.
  */
-static void start_input_tiff (Parameters params)
+static void start_input_tiff(Parameters params)
 {
-    tiff_source_ptr source = (tiff_source_ptr) params;
+    tiff_source_ptr source =(tiff_source_ptr) params;
     uint32 w, h;
+    uint32 components = 0;
+    uint32 type = 0;
     size_t npixels;
     TIFF *tif;
 
@@ -94,21 +149,50 @@ static void start_input_tiff (Parameters params)
     /* open file with tiff fdopen */
     tif = TIFFFdOpen(fileno(source->pub.fptr), "imagefile", "rm");
 
-    if (tif) {
+    if(tif)
+    {
         TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
         TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
+        TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &type);
+        TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &components);
+
+        switch(type)
+        {
+            case PHOTOMETRIC_MINISWHITE:
+            case PHOTOMETRIC_MINISBLACK:
+            case PHOTOMETRIC_MASK:
+                source->pub.numComponents = 1;
+                source->pub.get_pixel_row = get_row_gray;
+                break;
+                
+            case PHOTOMETRIC_RGB:
+            case PHOTOMETRIC_SEPARATED:
+            case PHOTOMETRIC_YCBCR:
+            case PHOTOMETRIC_CIELAB:
+                source->pub.numComponents = 3;
+                source->pub.get_pixel_row = get_row_rgb;
+                break;
+
+            case PHOTOMETRIC_PALETTE:
+                source->pub.numComponents = 4;
+                source->pub.get_pixel_row = get_row_rgba;
+                break;
+        }
 
         /* how many pixels in array? */
         npixels = w * h;
-        source->raster = (uint32*) _TIFFmalloc(npixels * sizeof (uint32));
+        source->raster =(uint32*) _TIFFmalloc(npixels * sizeof(uint32));
 
-        if (source->raster != NULL) {
-            if (!TIFFReadRGBAImage(tif, w, h, source->raster, 0)) {
+        if(source->raster != NULL)
+        {
+            if(!TIFFReadRGBAImage(tif, w, h, source->raster, 0))
+            {
                 /* do error message here */
                 ;
             }
         }
-        else {
+        else
+        {
             ERREXIT(ERR_OUT_OF_MEMORY);
         }
 
@@ -116,8 +200,8 @@ static void start_input_tiff (Parameters params)
 
         source->current_row = h-1;
 
-        source->pub.width = (int) w;
-        source->pub.height = (int) h;
+        source->pub.width =(int) w;
+        source->pub.height =(int) h;
     }
     else
         ERREXIT(ERR_TIF_NO_OPEN);
@@ -128,9 +212,9 @@ static void start_input_tiff (Parameters params)
  * Finish up at the end of the file.
  */
 
-static void finish_input_tiff (Parameters params)
+static void finish_input_tiff(Parameters params)
 {
-    tiff_source_ptr source = (tiff_source_ptr) params;
+    tiff_source_ptr source =(tiff_source_ptr) params;
 
     _TIFFfree(source->raster);
 }
@@ -140,14 +224,15 @@ static void finish_input_tiff (Parameters params)
  * and returns a "Parameters object" to that the calling function can access
  * the necessary internal functions of this file.
  */
-Parameters tiff_init ()
+Parameters tiff_init()
 {
     tiff_source_ptr source;
 
     /* Create module interface object */
-    source = (tiff_source_ptr) malloc(sizeof(tiff_source_struct));
+    source =(tiff_source_ptr) malloc(sizeof(tiff_source_struct));
 
-    if (source != NULL) {
+    if(source != NULL)
+    {
         /* Initialise structure */
         source->pub.fptr = NULL;
         source->pub.width = -1;
@@ -163,11 +248,11 @@ Parameters tiff_init ()
 
         /* Fill in method ptrs */
         source->pub.start_input = start_input_tiff;
-        source->pub.get_pixel_row = get_row_tiff;
+        source->pub.get_pixel_row = get_row_rgba;
         source->pub.finish_input = finish_input_tiff;
     }
 
     /* return the reference to initialised parameter structure */
-    return (Parameters) source;
+    return(Parameters) source;
 }
 
