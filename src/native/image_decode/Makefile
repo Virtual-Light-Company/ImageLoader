@@ -6,7 +6,7 @@
 # Makefile for the image_decode native library
 #
 # Author: Justin Couch
-# Version: $Revision: 1.1 $
+# Version: $Revision: 1.2 $
 #
 #*********************************************************************
 
@@ -24,6 +24,6 @@ C_SOURCE = common.c \
 	readpng.c
 
 # Other libraries that the compile process is dependent on
-LIBRARY_3RDPARTY=zlib png jpeg tiff
+LIBRARY_3RDPARTY=z png jpeg tiff
 
 include ${PROJECT_ROOT}/make/Makefile.native

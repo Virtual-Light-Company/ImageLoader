@@ -4,9 +4,9 @@
 #                         http://www.vlc.com.au/~justin/
 #
 # Lowest level common makefile for Java code
-# 
+#
 # Author: Justin Couch
-# Version: $Revision: 1.1 $
+# Version: $Revision: 1.2 $
 #
 #*********************************************************************
 
@@ -167,7 +167,7 @@ JAVADOC_OPTIONS  = \
      -header $(HEADER) \
      -bottom $(BOTTOM) \
 	 $(LINK_FILES)
-	 
+
 ifdef OVERVIEW
   JAVADOC_OPTIONS += -overview $(OVERVIEW)
 endif
@@ -261,36 +261,50 @@ clean : $(PLIST_CLEAN)
 #
 
 # Rule 13. Build a jar file. $* strips the last phony .JAR extension.
+# Copy all the required directories to a temp dir and then build the
+# JAR from that. The -C option on the jar command recurses all the
+# directories, which we don't want because we want to control the
+# packaging structure.
 %.JAR :
-	@ $(MAKEDIR) $(JAR_DIR)
+	@ $(MAKEDIR) $(JAR_DIR) $(JAR_TMP_DIR)
 	$(PRINT) Deleting the old JAR file
 	@ $(DELETE) $(JAR_DIR)/$*
 	$(PRINT) Building the new JAR file $*
-	@ $(JAR) $(JAR_OPTIONS) $(JAR_MANIFEST) $(JAR_DIR)/$* $(JAR_CONTENT_CMD)
+	@ $(RMDIR) $(JAR_TMP_DIR)/*
+	$(CD) $(CLASS_DIR) && $(COPY_PATH) $(JAR_CLASS_FILES) $(JAR_TMP_DIR)
+	$(JAR) $(JAR_OPTIONS) $(JAR_MANIFEST) $(JAR_DIR)/$* $(JAR_CONTENT_CMD)
 
-
-# Rule 14. Create given jar file by invoking its Makefile which triggers
-# rule 13
+# Rule 13. Create given jar file by invoking its Makefile which triggers
+# rule 12
 %.jar :
-	$(MAKE) -k -f $(patsubst %,$(MAKE_DIR)/jar/Makefile.$*,$@) $@.JAR
+	$(PRINT) Building JAR file $@
+	@ $(MAKE) -k -f $(patsubst %,$(JAR_MAKE_DIR)/Makefile.$*,$@) $@.JAR
+	$(PRINT) Cleaning up
+	@ $(RMDIR) $(JAR_TMP_DIR)
 
 
-# Rule 15. Create all jar files by invoking rule 14
+# Rule 14. Create all jar files by invoking rule 13
 jar : $(JARS)
 	$(PRINT) Done jars.
 
-
-# Rule 16. Build javadoc for all listed packages
+# Rule 15. Build javadoc for all listed packages
 javadoc :
 	@ $(MAKEDIR) $(JAVADOC_DIR)
 	$(PRINT) Cleaning out old docs
 	@ $(RMDIR) $(JAVADOC_DIR)/*
-	@ $(PRINT) $(PACKAGES) > $(JAVA_DEV_ROOT)/packages.tmp
+	@ $(PRINT) $(JAVADOC_PACKAGES) > $(JAVA_DEV_ROOT)/packages.tmp
 	$(PRINT) Starting Javadoc process
 	@ $(JAVADOC) $(JAVADOC_OPTIONS) @$(JAVA_DEV_ROOT)/packages.tmp
 	@ $(DELETE) $(JAVA_DEV_ROOT)/packages.tmp
 	$(PRINT) Done JavaDoc.
 
-# Rule 17. A combination of steps used for automatic building
+# Rule 16. A combination of steps used for automatic building
 complete : clean buildall jar javadoc
 
+# Rule 17. Install the JAR files after we have created them
+install: $(JAR_INSTALL_DIR)
+	$(PRINT) Copying JAR files to $(JAR_INSTALL_DIR)
+	$(COPY) $(JAR_DIR)/* $(JAR_INSTALL_DIR)
+
+# Rule 18. Copy the properties files to the classes directory
+properties: $(OTHER_FILES)
