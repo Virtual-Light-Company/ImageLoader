@@ -7,19 +7,17 @@
  *
  * http://www.gnu.org/copyleft/lgpl.html
  *
- * Project:    Image Content Handlers
- *
- * Version History
- * Date        TR/IWOR  Version  Programmer
- * ----------  -------  -------  ------------------------------------------
- *
  ****************************************************************************/
 
 package vlc.net.content.image;
 
 // Standard imports
-import java.net.*;
-import java.io.*;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageProducer;
+import java.io.IOException;
+import java.net.URLConnection;
+import java.net.ContentHandler;
 
 // Application specific imports
 //none
@@ -50,10 +48,46 @@ public class tiff extends ContentHandler
       throws IOException
    {
       // create a new image decoder ready to decode a TIFF image
-      ImageDecoder decoder = new ImageDecoder("tiff");
+        ImageBuilder decoder = new ImageBuilder("tiff");
 
-      // now decode the image from the input stream
-      return decoder.decode(u.getInputStream());
-   }
+        // now decode the image from the input stream
+        return decoder.decode(u.getInputStream());
+    }
+
+    /**
+     * Given a URL connect stream positioned at the beginning of the
+     * representation of an object, this method reads that stream and creates
+     * an object that matches one of the types specified. The types are
+     * taken in the order specified in the list.
+     *
+     * @param u an URL connection.
+     * @param classes The list of classes to go looking for
+     * @return the Image, or null on error.
+     * @exception IOException if an I/O error occurs while reading the object.
+     */
+    public Object getContent(URLConnection u, Class[] classes)
+        throws IOException
+    {
+        // create a new image decoder ready to decode a JPEG image
+        ImageBuilder decoder = new ImageBuilder("tiff");
+
+        Object ret_val = null;
+
+        for(int i = 0; i < classes.length; i++)
+        {
+            if(classes[i].isInstance(ImageProducer.class))
+            {
+                //ret_val = decoder.createProducer(u.getInputStream());
+                break;
+            }
+            else if(classes[i].isInstance(Image.class))
+            {
+                ret_val = decoder.decode(u.getInputStream());
+                break;
+            }
+        }
+
+        return ret_val;
+    }
 }
 

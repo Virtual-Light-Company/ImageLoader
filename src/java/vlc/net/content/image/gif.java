@@ -7,11 +7,6 @@
  *
  * http://www.gnu.org/copyleft/lgpl.html
  *
- * Project:    Image Content Handlers
- *
- * Version History
- * Date        TR/IWOR  Version  Programmer
- * ----------  -------  -------  ------------------------------------------
  *
  ****************************************************************************/
 
@@ -85,22 +80,25 @@ public class gif extends ContentHandler
    public Object getContent(URLConnection u)
       throws IOException
    {
-      if (HAVE_LZW_PATENT_LICENSE) {
+      if(HAVE_LZW_PATENT_LICENSE)
+      {
          // create a new image decoder ready to decode a GIF image
          // NOT IMPLEMENTED YET
-         ImageDecoder decoder = new ImageDecoder("gif");
+         ImageBuilder decoder = new ImageBuilder("gif");
 
          // now decode the image from the input stream
          return decoder.decode(u.getInputStream());
       }
-      else {
+      else
+      {
          /* JDK1.1 - uncomment this
          // use java to get our image
          return Toolkit.getDefaultToolkit().getImage(u.getURL());
            /*
          */
 
-         if (RUN_GC) {
+         if (RUN_GC)
+         {
             // first we have to run the garbage collector, to ensure that
             // we have maximum amount of memory available
 

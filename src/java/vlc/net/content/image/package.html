@@ -89,5 +89,12 @@ The following formats are supported
 </TR>
 </TABLE>
 
+<H3>Using Content Handlers</H3>
+
+These content handlers can supply the data in one of two modes - producing a
+raw image or an {@link java.awt.image.ImageProducer}. By default, you will get
+a {java.awt.image.BufferedImage} from the libraries. However, if you use the
+alternate <code>getContent(Class[])</code> method you can ask for an instance
+of ImageProducer instead.
 </BODY>
 </HTML>
