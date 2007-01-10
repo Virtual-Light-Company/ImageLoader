@@ -6,7 +6,7 @@
 # Lowest level common makefile for both native and Java code
 # 
 # Author: Justin Couch
-# Version: $Revision: 1.9 $
+# Version: $Revision: 1.10 $
 #
 #*********************************************************************
 
@@ -48,10 +48,10 @@ else
   LIB_SUFFIX=dll
   LIB_PREFIX=
   INCLUDE_LIST+=$(JNI_HEADER_DIR)/win32 /usr/include/win32api
-  CFLAGS +=-D_WIN32 -mno-cygwin
-  CC_LINK_OPTIONS = -Wl,--add-stdcall-alias -shared $(CFLAGS)
+  CFLAGS +=-D_WIN32 
+  CC_LINK_OPTIONS = -shared $(CFLAGS) -L$(3RDPARTY_DLL_DIR)
   ifdef LIBRARY_3RDPARTY
-    3RDPARTY_LIBS = $(patsubst %,$(3RDPARTY_DLL_DIR)/lib%.dll,$(LIBRARY_3RDPARTY))
+    3RDPARTY_LIBS = $(patsubst %,-l%, $(LIBRARY_3RDPARTY))
   endif
 endif
 
@@ -120,7 +120,7 @@ $(LIB_DIR)/%.o : $(NATIVE_DIR)/$(LIBRARY)/%.c
 # Rule 6. Building a .dll or .so from .o files.
 $(LIB_DESTINATION)/$(LIB_PREFIX)$(LIBRARY).$(LIB_SUFFIX): $(OBJ_FILES)
 	$(PRINT) Building $@
-	cd $(LIB_DIR) && $(CC) $(CC_LINK_OPTIONS) -o $(LIB_DESTINATION)/$(LIB_PREFIX)$(LIBRARY).$(LIB_SUFFIX) $(3RDPARTY_LIBS) $(OBJ_FILES) 
+	cd $(LIB_DIR) && $(CC) $(CC_LINK_OPTIONS) -o $(LIB_DESTINATION)/$(LIB_PREFIX)$(LIBRARY).$(LIB_SUFFIX) $(OBJ_FILES) $(3RDPARTY_LIBS) 
 
 # 
 # Cleanups
