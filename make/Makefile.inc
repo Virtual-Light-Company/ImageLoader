@@ -6,16 +6,12 @@
 # Lowest level common makefile for both native and Java code
 # 
 # Author: Justin Couch
-# Version: $Revision: 1.2 $
+# Version: $Revision: 1.3 $
 #
 #*********************************************************************
 
 ifndef PROJECT_ROOT
   export PROJECT_ROOT=/usr/local/src/projects/imageloader
-endif
-
-ifndef JAVA_HOME
-  JAVA_HOME=/usr/local/java/jdk1.3
 endif
 
 SRC_DIR=$(PROJECT_ROOT)/src
