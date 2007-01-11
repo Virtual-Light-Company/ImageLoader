@@ -37,7 +37,7 @@ help:
 	$(PRINT) "bin:         Build parsers and classes"
 	$(PRINT) "jar:         Make the java JAR file"
 	$(PRINT) "javadoc:     Generate the javadoc information"
-	$(PRINT) "lib:         Generate the native libraries"
+	$(PRINT) "libs:         Generate the native libraries"
 	$(PRINT) "jni:         Build just the JNI interfaces"
 	$(PRINT) "all:         Build everything (including docs)"
 	$(PRINT) "clean:       Blow all the library classes away"
