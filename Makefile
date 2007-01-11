@@ -18,32 +18,50 @@
 #
 
 ifndef PROJECT_ROOT
-export PROJECT_ROOT=/projects/imageloader
+export PROJECT_ROOT=$(PWD)
 endif
 
 include $(PROJECT_ROOT)/make/Makefile.inc
 
-VERSION=1.1
+# Default instruction is to print out the help list
+help:
+	$(PRINT) 
+	$(PRINT) "                   The VLC Imageloader Project"
+	$(PRINT) 
+	$(PRINT) "More information on this project can be found at"
+	$(PRINT) "http://www.vlc.com.au/imageloader"
+	$(PRINT) 
+	$(PRINT) "The following options are offered and will build the entire codebase:"
+	$(PRINT) 
+	$(PRINT) "class:       Compile just the classes. Don't make JAR files."
+	$(PRINT) "bin:         Build parsers and classes"
+	$(PRINT) "jar:         Make the java JAR file"
+	$(PRINT) "javadoc:     Generate the javadoc information"
+	$(PRINT) "lib:         Generate the native libraries"
+	$(PRINT) "jni:         Build just the JNI interfaces"
+	$(PRINT) "all:         Build everything (including docs)"
+	$(PRINT) "clean:       Blow all the library classes away"
+	$(PRINT) 
 
-all: jar libs javadoc
+
+all: jar lib javadoc
 
 class:
-	cd $(JAVA_DIR) && make buildall
+	make -f $(JAVA_DIR)/Makefile buildall
 
 jar:
-	cd $(JAVA_DIR) && make buildall
-	cd $(JAVA_DIR) && make jar
+	make -f $(JAVA_DIR)/Makefile jar
 
 javadoc:
-	cd $(JAVA_DIR) && make javadoc
+	make -f $(JAVA_DIR)/Makefile javadoc
 
 jni:
-	cd $(JAVA_DIR) && make jni
+	make -f $(JAVA_DIR)/Makefile jni
 
 libs:
-	cd $(JAVA_DIR) && make nativeall
-	cd $(NATIVE_DIR) && make buildall
-    
+	make -f $(JAVA_DIR)/Makefile nativeall
+	make -f $(NATIVE_DIR)/Makefile buildall
+
 clean:
-	cd $(JAVA_DIR) && make clean
-	cd $(NATIVE_DIR) && make clean
+	make -f $(JAVA_DIR)/Makefile clean
+	make -f $(NATIVE_DIR)/Makefile clean

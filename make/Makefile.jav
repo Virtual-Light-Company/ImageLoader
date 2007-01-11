@@ -1,12 +1,12 @@
 #*********************************************************************
 #
-#                         (C) 2001-02 Justin Couch
-#                         http://www.vlc.com.au/~justin/
+#                         (C) 2001-07 Justin Couch
+#                       http://www.vlc.com.au/~justin/
 #
 # Lowest level common makefile for Java code
 #
 # Author: Justin Couch
-# Version: $Revision: 1.5 $
+# Version: $Revision: 1.6 $
 #
 #*********************************************************************
 
@@ -17,13 +17,14 @@ include $(PROJECT_ROOT)/make/Makefile.inc
 
 JAVA_DEV_ROOT = $(JAVA_DIR)
 
-CLASS_DIR     = $(PROJECT_ROOT)/classes
+CLASS_DIR     = classes
 JAVADOC_DIR   = $(DOCS_DIR)/javadoc
-JAR_DIR       = $(PROJECT_ROOT)/jars
+LIB_DIR       = lib
+JAR_DIR	      = jars
 JAR_MAKE_DIR  = $(MAKE_DIR)/jar
-JAVA_SRC_DIR  = $(JAVA_DEV_ROOT)
-DESTINATION   = $(PROJECT_ROOT)/classes
-JAR_TMP_DIR   = $(PROJECT_ROOT)/.jar_tmp
+JAVA_SRC_DIR  = src/java
+DESTINATION   = classes
+JAR_TMP_DIR   = .jar_tmp
 MANIFEST_DIR  = $(MAKE_DIR)/manifest
 
 #
@@ -34,13 +35,11 @@ ifdef JAVA_HOME
   JAR      = $(JAVA_HOME)/bin/jar
   JAVADOC  = $(JAVA_HOME)/bin/javadoc
   JAVAH    = $(JAVA_HOME)/bin/javah
-  JAR_INSTALL_DIR = $(JAVA_HOME)/jre/lib/ext
 else
   JAVAC    = javac
   JAR      = jar
   JAVADOC  = javadoc
   JAVAH	   = javah
-  JAR_INSTALL_DIR = $(HOME)/xj3d
 endif
 
 EMPTY         =
@@ -54,39 +53,19 @@ else
 endif
 
 ifdef JARS
-	LOCAL_JARTMP  = $(patsubst %,$(JAR_DIR)/%,$(JARS))
-	LOCAL_JARLIST = $(subst $(SPACE),$(PATH_SEP),$(LOCAL_JARTMP))
+  LOCAL_JARTMP  = $(patsubst %,$(JAR_DIR)/%,$(JARS))
+  LOCAL_JARLIST = $(subst $(SPACE),$(PATH_SEP),$(LOCAL_JARTMP))
 endif
 
 ifdef JARS_3RDPARTY
-	OTHER_JARTMP  = $(patsubst %,$(LIB_DIR)/%,$(JARS_3RDPARTY))
-	OTHER_JARLIST = $(subst $(SPACE),$(PATH_SEP),$(OTHER_JARTMP))
+  OTHER_JARTMP  = $(patsubst %,$(LIB_DIR)/%,$(JARS_3RDPARTY))
+  OTHER_JARLIST = $(subst $(SPACE),$(PATH_SEP),$(OTHER_JARTMP))
 endif
-
-SOURCEPATH = $(JAVA_SRC_DIR)
-
-CP = $(CLASS_DIR)
-
-ifdef JARS
-	LOCAL_JARTMP  = $(patsubst %,$(JAR_DIR)/%,$(JARS))
-	LOCAL_JARLIST = $(subst $(SPACE),$(PATH_SEP),$(LOCAL_JARTMP))
-endif
-
-ifdef JARS_3RDPARTY
-	OTHER_JARTMP  = $(patsubst %,$(LIB_DIR)/%,$(JARS_3RDPARTY))
-	OTHER_JARLIST = $(subst $(SPACE),$(PATH_SEP),$(OTHER_JARTMP))
-endif
-
-SOURCEPATH = $(JAVA_SRC_DIR)
 
 CP = $(CLASS_DIR)
 
 ifdef LOCAL_JARLIST
-  ifdef CP
-    CP :="$(CP)$(PATH_SEP)$(LOCAL_JARLIST)"
-  else
-    CP :="$(LOCAL_JARLIST)"
-  endif
+  CP :="$(CP)$(PATH_SEP)$(LOCAL_JARLIST)"
 endif
 
 ifdef OTHER_JARLIST
@@ -146,15 +125,14 @@ JNI_LIST_BUILD = $(patsubst %,$(JAVA_SRC_DIR)/%/.native,$(NATIVE_LIST))
 #
 # Option listing for the various commands
 #
-JAVAC_OPTIONS = -d $(DESTINATION) -classpath $(CLASSPATH) \
-                -sourcepath $(SOURCEPATH)
+JAVAC_OPTIONS = -d $(DESTINATION) -classpath $(CLASSPATH) $(JAVAC_FLAGS)
 JAVAH_OPTIONS = -d $(INCLUDE_DIR) -classpath $(CLASSPATH)
 
 ifdef MANIFEST
-  JAR_OPTIONS = -cvmf
+  JAR_OPTIONS = -cmf
   JAR_MANIFEST = $(MANIFEST_DIR)/$(MANIFEST)
 else
-  JAR_OPTIONS = -cvf
+  JAR_OPTIONS = -cf
 endif
 
 JAVADOC_OPTIONS  = \
@@ -164,14 +142,19 @@ JAVADOC_OPTIONS  = \
      -author \
      -use \
      -version \
+     -quiet \
      -windowtitle $(WINDOWTITLE) \
      -doctitle $(DOCTITLE) \
      -header $(HEADER) \
      -bottom $(BOTTOM) \
-	 $(LINK_FILES)
+     $(LINK_FILES)
 
 ifdef OVERVIEW
   JAVADOC_OPTIONS += -overview $(OVERVIEW)
+endif
+
+ifdef JAVADOC_FLAGS
+  JAVADOC_OPTIONS += $(JAVADOC_FLAGS)
 endif
 
 #
@@ -243,8 +226,8 @@ $(PACKAGE_DIR)/%.class : $(JAVA_SRC_DIR)/$(PACKAGE_LOC)/%.java
 # the package specifics.
 $(PACKAGE_DIR)/% : $(SRC_DIR)/$(PACKAGE_LOC)/%
 	$(MAKEDIR) $(PACKAGE_DIR)
-	$< $@
-	$(CHMOD) u+rw $@
+	$(COPY) $< $@
+	$(CHMOD) u+rw $<
 
 #
 # Cleanups
@@ -280,14 +263,24 @@ clean : $(PLIST_CLEAN)
 	@ $(DELETE) $(JAR_DIR)/$*
 	$(PRINT) Building the new JAR file $*
 	@ $(RMDIR) $(JAR_TMP_DIR)/*
-	$(CD) $(CLASS_DIR) && $(COPY_PATH) $(JAR_CLASS_FILES) $(JAR_TMP_DIR)
+	if [ -n "$(JAR_CLASS_FILES)" ] ; then \
+	  for X in $(JAR_CONTENT) ; do \
+	    $(MAKEDIR) $(JAR_TMP_DIR)/"$$X" ; \
+	    $(COPY) $(CLASS_DIR)/"$$X"/*.* $(JAR_TMP_DIR)/"$$X" ; \
+	  done ; \
+	fi
+	if [ -n "$(INCLUDE_JARS)" ] ; then \
+	  for X in $(INCLUDE_JARS) ; do \
+	    $(COPY) $(JAR_DIR)/"$$X" $(JAR_TMP_DIR) ; \
+	  done ; \
+	fi
 	$(JAR) $(JAR_OPTIONS) $(JAR_MANIFEST) $(JAR_DIR)/$* $(JAR_CONTENT_CMD)
 
 # Rule 13. Create given jar file by invoking its Makefile which triggers
 # rule 12
 %.jar :
 	$(PRINT) Building JAR file $@
-	@ $(MAKE) -k -f $(patsubst %,$(JAR_MAKE_DIR)/Makefile.$*,$@) $@.JAR
+	@ $(MAKE) -k -f $(patsubst %,$(JAR_MAKE_DIR)/Makefile.$*,$@) $(patsubst %,$*_$(JAR_VERSION).jar,$@).JAR
 	$(PRINT) Cleaning up
 	@ $(RMDIR) $(JAR_TMP_DIR)
 
@@ -301,20 +294,17 @@ javadoc :
 	@ $(MAKEDIR) $(JAVADOC_DIR)
 	$(PRINT) Cleaning out old docs
 	@ $(RMDIR) $(JAVADOC_DIR)/*
-	@ $(PRINT) $(JAVADOC_PACKAGES) > $(JAVA_DEV_ROOT)/packages.tmp
+	@ $(PRINT) $(JAVADOC_PACKAGES) > packages.tmp
 	$(PRINT) Starting Javadoc process
-	@ $(JAVADOC) $(JAVADOC_OPTIONS) @$(JAVA_DEV_ROOT)/packages.tmp
-	@ $(DELETE) $(JAVA_DEV_ROOT)/packages.tmp
+	@ $(JAVADOC) $(JAVADOC_OPTIONS) @packages.tmp
+	@ $(DELETE) packages.tmp
 	$(PRINT) Done JavaDoc.
 
 # Rule 16. A combination of steps used for automatic building
 complete : clean buildall jar javadoc
 
-# Rule 17. Install the JAR files after we have created them
-install: 
-	$(PRINT) Copying JAR files to $(JAR_INSTALL_DIR)
-	$(COPY) $(JAR_DIR)/* $(JAR_INSTALL_DIR)
-
 # Rule 18. Copy the properties files to the classes directory
 properties: $(OTHER_FILES)
 
+# Rule 15. A combination of steps used for automatic building
+complete : clean buildall jar javadoc

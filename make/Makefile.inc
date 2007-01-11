@@ -1,23 +1,18 @@
 #*********************************************************************
 #
-#                         (C) 2001-02 Justin Couch
+#                         (C) 2001 - 07 Justin Couch
 #                         http://www.vlc.com.au/~justin/
 #
 # Lowest level common makefile for both native and Java code
 # 
 # Author: Justin Couch
-# Version: $Revision: 1.3 $
+# Version: $Revision: 1.4 $
 #
 #*********************************************************************
 
-ifndef PROJECT_ROOT
-  export PROJECT_ROOT=/usr/local/src/projects/imageloader
-endif
-
-SRC_DIR=$(PROJECT_ROOT)/src
-DOCS_DIR=$(PROJECT_ROOT)/docs
-LIB_DIR=$(PROJECT_ROOT)/lib
-MAKE_DIR=$(PROJECT_ROOT)/make
+SRC_DIR=src
+DOCS_DIR=docs
+MAKE_DIR=make
 
 JAVA_DIR=$(SRC_DIR)/java
 NATIVE_DIR=$(SRC_DIR)/native
@@ -28,8 +23,11 @@ MAKEDIR   = mkdir -p
 RMDIR     = rm -fr
 PRINT     = @echo
 COPY      = cp 
-COPY_PATH = cp -P
+COPY_PATH = cp --parents
 CHMOD     = chmod
 CD        = cd
+
+#JAVAC_FLAGS=-deprecation
+#JAVADOC_FLAGS=
 
 MAKEFLAGS=-s

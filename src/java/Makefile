@@ -6,15 +6,15 @@
 # Makefile for the native code libraries
 #
 # Author: Justin Couch
-# Version: $Revision: 1.2 $
+# Version: $Revision: 1.3 $
 #
 #*********************************************************************
 
 # Names of packages to be compiled. These are declared in the order that
 # they are to be compiled in. We create one at a time
 BUILD_ORDER = \
-	 vlc.net.content.image \
-	 vlc.net.content 
+  vlc.net.content.image \
+  vlc.net.content 
 
 # List of packages that have native code libraries in use and require
 # JNI header generation
@@ -22,19 +22,18 @@ NATIVE_PACKAGES = vlc.net.content.image
 
 # Names of packages that we want included in the javadoc
 JAVADOC_PACKAGES = \
-	 vlc.net.content.image \
-	 vlc.net.content 
+  vlc.net.content.image \
+  vlc.net.content 
+
+# A version number we tack onto the JAR file name for eclipse versioning
+# purposes.
+JAR_VERSION=1.1.0
 
 # Names of JAR files we want to create
 JARS = imageloader.jar
 
-# 3rd party libraries that need including.
-JARS_3RDPARTY=
-
-# Definitions of setup information if we are making a self-executable JAR
-MAIN_CLASS     = 
-MAIN_PACKAGE   = 
-MAIN_JAR       = imageloader.jar
+# 3rd party libraries that need including for JAVADOC generation
+JARS_JAVADOC=
 
 #*********************************************************************
 #
@@ -45,7 +44,7 @@ MAIN_JAR       = imageloader.jar
 WINDOWTITLE = 'VLC Content Handlers Specification'
 DOCTITLE    = 'VLC ImageLoader API'
 HEADER      = 'VLC ImageLoader API'
-BOTTOM      = '<font size=2>Copyright &copy; 2000 - The Virtual Light Company \
+BOTTOM      = '<font size=2>Copyright &copy; 2000 - 2007 The Virtual Light Company \
 		   <a href=\"http://www.vlc.com.au\">VLC</a></font>'
 
 # A list of the local directories that contain other Javadoc that we want
@@ -56,7 +55,6 @@ BOTTOM      = '<font size=2>Copyright &copy; 2000 - The Virtual Light Company \
 # the single quotes to get the space treated in the file name
 #LINK_URLS   = 'file:///c:/java/jaxp-1.1/docs/api/' \
 #              'file:///c:/java/junit3.5/javadoc/' \
-#			  'file:///c:/java/jdk1.3/docs/api/' \
 #			  'file:///c:/java/j3d/1.2.1/html/'
 
 include $(PROJECT_ROOT)/make/Makefile.jav 
