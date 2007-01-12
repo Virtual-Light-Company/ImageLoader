@@ -37,10 +37,11 @@ help:
 	$(PRINT) "bin:         Build parsers and classes"
 	$(PRINT) "jar:         Make the java JAR file"
 	$(PRINT) "javadoc:     Generate the javadoc information"
-	$(PRINT) "libs:         Generate the native libraries"
+	$(PRINT) "libs:        Generate the native libraries"
 	$(PRINT) "jni:         Build just the JNI interfaces"
 	$(PRINT) "all:         Build everything (including docs)"
-	$(PRINT) "clean:       Blow all the library classes away"
+	$(PRINT) "clean:       Blow all the native and java classes away"
+	$(PRINT) "libsclean:   Blow only the native compile code away"
 	$(PRINT) 
 
 
@@ -64,4 +65,7 @@ libs:
 
 clean:
 	make -f $(JAVA_DIR)/Makefile clean
+	make -f $(NATIVE_DIR)/Makefile clean
+
+libsclean:
 	make -f $(NATIVE_DIR)/Makefile clean
