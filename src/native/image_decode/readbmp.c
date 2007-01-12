@@ -125,7 +125,7 @@ static void read_colormap (bmp_source_ptr source, int cmaplen, int mapentrysize)
 }
 
 /*
- * This method loads the image into whole_image.  
+ * This method loads the image into whole_image.
  * The data in the file is RLE encoded, so this routine decodes it.
  * The algorithm for decoding RLE was achieved by a combination of examining
  * other (buggy) RLE code, reading the (sometimes incorrect) tech info from
@@ -143,7 +143,7 @@ static void extract_rle_data (Parameters params)
     int xoff, yoff;
     int currByte, byte1, byte2;
     int pixelSize;
- 
+
     imageSize = source->image_size;
 
     if (source->compression == 1)
@@ -264,7 +264,7 @@ static void extract_rle_data (Parameters params)
                         *out_ptr++ = (U_CHAR) (byte2 & 0xf);
                     }
                 } else {
-                    *out_ptr++ = (U_CHAR) byte2; 
+                    *out_ptr++ = (U_CHAR) byte2;
                 }
                 col++;
             }
@@ -384,7 +384,7 @@ static void preload_image (Parameters params)
     int row, col;
     int pixels_per_byte, bit_mask, bit_shift, bits_per_pixel;
     int num_cols, i;
- 
+
     bits_per_pixel = source->bits_per_pixel;    /* local copy for faster access */
 
     /* get data into whole_image buffer */
@@ -498,12 +498,12 @@ static void start_input_bmp (Parameters params)
      */
     if (! ReadOK(source->pub.fptr, bmpinfoheader, 4))
         ERREXIT(ERR_INPUT_EOF);
-    
+
     headerSize = (int) GET_4B(bmpinfoheader,0);
-    
+
     if (headerSize < 12 || headerSize > 64)
         ERREXIT(ERR_BMP_BADHEADER);
-    
+
     if (! ReadOK(source->pub.fptr, bmpinfoheader+4, headerSize-4))
         ERREXIT(ERR_INPUT_EOF);
 
@@ -554,7 +554,7 @@ static void start_input_bmp (Parameters params)
                 case 8:/* colormapped image */
                     mapentrysize = 4;      /* Windows uses RGBQUAD colormap */
                     break;
-                case 24:  /* RGB image */                        
+                case 24:  /* RGB image */
                     break;
                 default:
                     ERREXIT(ERR_BMP_BADDEPTH);
@@ -585,7 +585,7 @@ static void start_input_bmp (Parameters params)
 
         /* and read it from the file */
         read_colormap(source, (int) biClrUsed, mapentrysize);
-        
+
         /* account for size of colormap */
         bPad -= biClrUsed * mapentrysize;
     }
@@ -636,9 +636,6 @@ static void finish_input_bmp (Parameters params)
     /* free allocated memory */
     free2DByteArray(source->colormap);
     free2DByteArray(source->whole_image);
-
-    /* Must remember to free the parameter structure as well */
-    free(source);
 }
 
 

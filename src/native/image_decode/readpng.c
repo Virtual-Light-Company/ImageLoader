@@ -306,7 +306,7 @@ static void start_input_png (Parameters params)
             source->pub.get_pixel_row = get_row_rgba;
             break;
 
-        case PNG_COLOR_TYPE_PALETTE: 
+        case PNG_COLOR_TYPE_PALETTE:
             source->pub.numComponents = 4;
             source->pub.get_pixel_row = get_row_rgba;
 
@@ -330,7 +330,7 @@ static void start_input_png (Parameters params)
         row = 0;
         while((!fail && (row < height))) {
             /* allocate one byte for each of the 4 components for this row */
-            source->row_pointers[row] = 
+            source->row_pointers[row] =
                 (png_bytep) malloc(width * source->pub.numComponents);
 
             /* check to make sure memory allocation suceeded */
@@ -389,9 +389,6 @@ static void finish_input_png (Parameters params)
     }
 
     free(source->row_pointers);
-
-    /* Must remember to free the parameter structure as well */
-    free(source);
 }
 
 

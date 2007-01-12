@@ -88,7 +88,7 @@ static void get_row_jpeg(Parameters params)
         /* in the int array which is accessible by caller */
         switch(source->cinfo.output_components)
         {
-            case 3: 
+            case 3:
                 for(i = 0; i < source->pub.width; i++)
                 {
                     r = (jint)(*ptr++ & 0xff);
@@ -112,7 +112,7 @@ static void get_row_jpeg(Parameters params)
                 }
                 break;
 
-            default: 
+            default:
                 /* Don't understand this color space */
                 strncpy(source->pub.error_msg, ERR_COLOR_SPACE, ERROR_LEN);
                 source->pub.error_msg[ERROR_LEN-1] = '\0';
@@ -206,9 +206,6 @@ static void finish_input_jpeg(Parameters params)
 
     /* Free memory allocated to the error handler */
     free(source->err);
-
-    /* Must remember to free the parameter structure as well */
-    free(source);
 }
 
 
