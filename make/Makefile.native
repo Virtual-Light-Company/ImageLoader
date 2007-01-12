@@ -6,7 +6,7 @@
 # Lowest level common makefile for both native and Java code
 # 
 # Author: Justin Couch
-# Version: $Revision: 1.12 $
+# Version: $Revision: 1.13 $
 #
 #*********************************************************************
 
@@ -21,7 +21,7 @@ NATIVE_SRC_DIR   = $(NATIVE_DEV_ROOT)
 3RDPARTY_DLL_DIR = $(NATIVE_DEV_ROOT)/dll
 DESTINATION      = obj
 LIB_DESTINATION  = bin
-JNI_HEADER_DIR   = $(JAVA_CYG_HOME)/include
+JNI_HEADER_DIR   = $(JAVA_HOME)/include
 
 #
 # Built up tool information
