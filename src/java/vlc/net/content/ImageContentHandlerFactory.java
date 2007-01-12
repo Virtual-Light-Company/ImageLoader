@@ -1,17 +1,11 @@
 /*****************************************************************************
- *                The Virtual Light Company Copyright (c) 1999
+ *                The Virtual Light Company Copyright (c) 1999 - 2007
  *                               Java Source
  *
- * This code is licensed under the GNU Library GPL. Please read license.txt
+ * This code is licensed under the GNU Library GPL v2.1. Please read license.txt
  * for the full details. A copy of the LGPL may be found at
  *
  * http://www.gnu.org/copyleft/lgpl.html
- *
- * Project:    Image Content Handlers
- *
- * Version History
- * Date        TR/IWOR  Version  Programmer
- * ----------  -------  -------  ------------------------------------------
  *
  ****************************************************************************/
 
@@ -76,29 +70,31 @@ public class ImageContentHandlerFactory implements ContentHandlerFactory
     */
    public ContentHandler createContentHandler(String mimetype)
    {
+      ContentHandler ret_val = null;
+
       if (mimetype.equalsIgnoreCase("image/png"))
-         return new png();
+         ret_val = new png();
       else if (mimetype.equalsIgnoreCase("image/bmp"))
-         return new bmp();
+         ret_val = new bmp();
       else if (mimetype.equalsIgnoreCase("image/jpeg"))
-         return new jpeg();
+         ret_val = new jpeg();
       else if (mimetype.equalsIgnoreCase("image/gif"))
-         return new gif();
+         ret_val = new gif();
       else if (mimetype.equalsIgnoreCase("image/targa"))
-         return new targa();
+         ret_val = new targa();
       else if (mimetype.equalsIgnoreCase("image/x-portable-pixmap"))
-         return new x_portable_pixmap();
+         ret_val = new x_portable_pixmap();
       else if (mimetype.equalsIgnoreCase("image/x-portable-graymap"))
-         return new x_portable_graymap();
+         ret_val = new x_portable_graymap();
       else if (mimetype.equalsIgnoreCase("image/tiff"))
-         return new tiff();
+         ret_val = new tiff();
 
       // handle previous content handlers
-      if (prevFactory != null)
-         return prevFactory.createContentHandler(mimetype);
+      if (ret_val == null && prevFactory != null)
+         ret_val = prevFactory.createContentHandler(mimetype);
 
       // return null if unsure.
-      return null;
+      return ret_val;
    }
 }
 
