@@ -6,7 +6,7 @@
 # Lowest level common makefile for both native and Java code
 # 
 # Author: Justin Couch
-# Version: $Revision: 1.5 $
+# Version: $Revision: 1.6 $
 #
 #*********************************************************************
 
@@ -30,4 +30,4 @@ CD        = cd
 #JAVAC_FLAGS=-deprecation
 #JAVADOC_FLAGS=
 
-#MAKEFLAGS=-s
+MAKEFLAGS=-s
