@@ -1,26 +1,23 @@
 /*****************************************************************************
- *                The Virtual Light Company Copyright (c) 1999
+ *                The Virtual Light Company Copyright (c) 1999 - 2007
  *                               Java Source
  *
- * This code is licensed under the GNU Library GPL. Please read license.txt
+ * This code is licensed under the GNU Library GPL v2.1. Please read license.txt
  * for the full details. A copy of the LGPL may be found at
  *
  * http://www.gnu.org/copyleft/lgpl.html
- *
- * Project:    Image Content Handlers
- *
- * Version History
- * Date        TR/IWOR  Version  Programmer
- * ----------  -------  -------  ------------------------------------------
  *
  ****************************************************************************/
 
 package vlc.net.content;
 
 
-// Standard imports
+// External imports
 import java.net.*;
 import java.io.IOException;
+
+// Local imports
+// None
 
 /**
  * This class provides functionality for determine MIME types
@@ -34,8 +31,8 @@ import java.io.IOException;
  * <A HREF="http://www.gnu.org/copyleft/lgpl.html">GNU LGPL</A>
  * <P>
  *
- * @author     <A HREF="mailto:justin@vlc.com.au">Justin Couch</A>
- * @version    1.00 30th November 1998
+ * @author Justin Couch
+ * @version $Revision: 1.3 $
  */
 public class ImageFileNameMap
     implements FileNameMap
@@ -74,26 +71,28 @@ public class ImageFileNameMap
      */
     public String getContentTypeFor(String fileName)
     {
+        String ret_val = null;
+
         if(fileName.toUpperCase().endsWith(".PNG"))
-            return "image/png";
+            ret_val = "image/png";
         else if(fileName.toUpperCase().endsWith(".TIF"))
-            return "image/tiff";
+            ret_val = "image/tiff";
         else if(fileName.toUpperCase().endsWith(".TIFF"))
-            return "image/tiff";
+            ret_val = "image/tiff";
         else if(fileName.toUpperCase().endsWith(".TGA"))
-            return "image/targa";
+            ret_val = "image/targa";
         else if(fileName.toUpperCase().endsWith(".BMP"))
-            return "image/bmp";
+            ret_val = "image/bmp";
         else if(fileName.toUpperCase().endsWith(".PPM"))
-            return "image/x-portable-pixmap";
+            ret_val = "image/x-portable-pixmap";
         else if(fileName.toUpperCase().endsWith(".PGM"))
-            return "image/x-portable-graymap";
+            ret_val = "image/x-portable-graymap";
 
         // handle previous filename maps
-        if(prevMap != null)
+        if(ret_val == null && prevMap != null)
             return prevMap.getContentTypeFor(fileName);
 
         // return null if unsure.
-        return null;
+        return ret_val;
     }
 }

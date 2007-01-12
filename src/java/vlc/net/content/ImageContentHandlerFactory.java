@@ -11,12 +11,11 @@
 
 package vlc.net.content;
 
-
-// Standard imports
+// External imports
 import java.net.ContentHandler;
 import java.net.ContentHandlerFactory;
 
-// Application specific imports
+// Local imports
 import vlc.net.content.image.*;
 
 /**
@@ -32,8 +31,8 @@ import vlc.net.content.image.*;
  * <A HREF="http://www.gnu.org/copyleft/lgpl.html">GNU LGPL</A>
  * <P>
  *
- * @author     <A HREF="mailto:justin@vlc.com.au">Justin Couch</A>
- * @version    1.00 30th November 1998
+ * @author Justin Couch
+ * @version $Revision: 1.3 $
  */
 public class ImageContentHandlerFactory implements ContentHandlerFactory
 {
