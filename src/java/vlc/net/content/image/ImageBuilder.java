@@ -17,6 +17,8 @@ import java.awt.Toolkit;
 
 import java.awt.image.*;
 import java.io.*;
+import java.awt.color.ColorSpace;
+import java.awt.Transparency;
 
 // Application specific imports
 // none
@@ -35,7 +37,7 @@ import java.io.*;
  * <A HREF="http://www.gnu.org/copyleft/lgpl.html">GNU LGPL</A>
  *
  * @author  Justin Couch
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  */
 public class ImageBuilder
 {
@@ -269,7 +271,23 @@ public class ImageBuilder
         {
             ColorModel cm = getColorModel(num_components);
             SampleModel sm = cm.createCompatibleSampleModel(width, height);
-            DataBufferInt buffer = new DataBufferInt(data, (width * height));
+            DataBuffer buffer;
+
+            if (num_components == 1)
+            {
+                int len = data.length;
+
+                byte[] new_data = new byte[len];
+                int idx = 0;
+                for(int j=0; j < len; j++) {
+                    new_data[idx++] = (byte) (data[j] & 0xFF);
+                }
+
+                buffer = new DataBufferByte(new_data, (width * height));
+            } else
+            {
+                buffer = new DataBufferInt(data, (width * height));
+            }
 
             switch(type)
             {
@@ -363,11 +381,16 @@ public class ImageBuilder
 
         switch(numComponents) {
             case 1:
-                ret_val = new DirectColorModel(8, 0, 0, 0xFF, 00);
+                ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_GRAY);
+
+                int colorType = DataBuffer.TYPE_BYTE;
+                int[] nBits = {8};
+                ret_val = new ComponentColorModel(cs, nBits, false, false, Transparency.OPAQUE, colorType);
+
                 break;
 
             case 2:
-                ret_val = new DirectColorModel(16, 0, 0xFF00, 0xFF, 0);
+                ret_val = new DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),16, 0x00FF, 0x00FF, 0x00FF, 0xFF00, false, DataBuffer.TYPE_INT);
                 break;
 
             case 3:
