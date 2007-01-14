@@ -11,16 +11,16 @@
 
 package vlc.net.content.image;
 
-// Standard imports
-import java.awt.Image;
-import java.awt.Toolkit;
-
+// External imports
 import java.awt.image.*;
 import java.io.*;
-import java.awt.color.ColorSpace;
-import java.awt.Transparency;
 
-// Application specific imports
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.Transparency;
+import java.awt.color.ColorSpace;
+
+// Local imports
 // none
 
 /**
@@ -37,7 +37,7 @@ import java.awt.Transparency;
  * <A HREF="http://www.gnu.org/copyleft/lgpl.html">GNU LGPL</A>
  *
  * @author  Justin Couch
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  */
 public class ImageBuilder
 {
@@ -75,6 +75,12 @@ public class ImageBuilder
     /** has all the data been sent to the native code yet? */
     private boolean sendingData;
 
+    /** The thread group all our threads belong to for management */
+    private ThreadGroup threadGroup;
+
+    /** Counter so that we get individual thread names */
+    private int threadCount;
+
     /**
      * Static initializer to set up the native library and find out what is
      * available to the system.
@@ -106,7 +112,10 @@ public class ImageBuilder
 
         // save type
         finishLock = new Object();
+        threadGroup = new ThreadGroup("VLC Image Loading");
+
         imageType = type;
+        threadCount = 0;
         boolean valid = false;
 
         // ensure that the library can handle this image type
@@ -170,7 +179,10 @@ public class ImageBuilder
             if(hasNativeThreads)
             {
                 // start a new thread to feed data to the pipe on the native side
-                Thread th = new Thread(filler);
+                Thread th = new Thread(threadGroup,
+                                       filler,
+                                       "Imageloader filler thread " +
+                                       threadCount++);
                 th.start();
             }
             else
@@ -234,6 +246,9 @@ public class ImageBuilder
             // Ensure that we perform cleanup
             decoder.finishDecoding(thread_id);
 
+            // Halt the filler, just in case it is still running
+            filler.die();
+
             // ensure that the buffer filler has completed before freeing
             // resources
             while(sendingData)
@@ -284,7 +299,8 @@ public class ImageBuilder
                 }
 
                 buffer = new DataBufferByte(new_data, (width * height));
-            } else
+            }
+            else
             {
                 buffer = new DataBufferInt(data, (width * height));
             }
@@ -379,7 +395,8 @@ public class ImageBuilder
     {
         ColorModel ret_val = null;
 
-        switch(numComponents) {
+        switch(numComponents)
+        {
             case 1:
                 ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_GRAY);
 
