@@ -176,6 +176,7 @@ static void start_input_jpeg(Parameters params)
         /* set image width and height */
         source->pub.width = (int) source->cinfo.output_width;
         source->pub.height = (int) source->cinfo.output_height;
+		source->pub.numComponents = source->cinfo.output_components;
     }
     else
     {
