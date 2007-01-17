@@ -268,12 +268,20 @@ static void start_input_png (Parameters params)
     png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type,
                      &interlace_type, NULL, NULL);
 
+	int has_transparency = 0;
+
     /* Expand paletted or RGB images with transparency to full alpha channels
      * so the data will be available as RGBA quartets.
      */
-    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) {
+		has_transparency = 1;
+
+		//Alan: seems to cause crashes
         png_set_expand(png_ptr);
 
+        // Alan: Docs say to do this, but it causes crash as well
+		png_set_tRNS_to_alpha(png_ptr);
+	}
 
     /* PNG can have files with 16 bits per channel.  We are only handling */
     /* 8 bits per channel, this will strip the pixels down to 8 bit. */
@@ -282,13 +290,19 @@ static void start_input_png (Parameters params)
 
     switch (color_type) {
         case PNG_COLOR_TYPE_GRAY:
-            source->pub.numComponents = 1;
-            source->pub.get_pixel_row = get_row_gray;
+            if (has_transparency) {
+				source->pub.numComponents = 2;
+				source->pub.get_pixel_row = get_row_gray_a;
+			} else {
+				source->pub.numComponents = 1;
+				source->pub.get_pixel_row = get_row_gray;
+			}
 
             if(bit_depth < 8)
                 png_set_expand(png_ptr);
 
-            png_set_filler(png_ptr, 255, PNG_FILLER_AFTER);
+			// Alan: Causes the decode to crash?
+            //png_set_filler(png_ptr, 255, PNG_FILLER_AFTER);
             break;
 
         case PNG_COLOR_TYPE_GRAY_ALPHA:
@@ -297,8 +311,14 @@ static void start_input_png (Parameters params)
             break;
 
         case PNG_COLOR_TYPE_RGB:
-            source->pub.numComponents = 3;
-            source->pub.get_pixel_row = get_row_rgb;
+			if (has_transparency) {
+	            source->pub.numComponents = 4;
+	            source->pub.get_pixel_row = get_row_rgba;
+	        } else {
+	            source->pub.numComponents = 3;
+	            source->pub.get_pixel_row = get_row_rgb;
+			}
+
             break;
 
         case PNG_COLOR_TYPE_RGB_ALPHA:
@@ -317,6 +337,9 @@ static void start_input_png (Parameters params)
             png_set_filler(png_ptr, 255, PNG_FILLER_AFTER);
             break;
     }
+
+	// Alan: Wasn't here,is it needed?
+	png_read_update_info(png_ptr, info_ptr);
 
     /* Allocate the memory to hold the image using the fields of info_ptr. */
 
