@@ -37,7 +37,7 @@ import java.awt.color.ColorSpace;
  * <A HREF="http://www.gnu.org/copyleft/lgpl.html">GNU LGPL</A>
  *
  * @author  Justin Couch
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  */
 public class ImageBuilder
 {
@@ -293,9 +293,9 @@ public class ImageBuilder
                 int len = data.length;
 
                 byte[] new_data = new byte[len];
-                int idx = 0;
-                for(int j=0; j < len; j++) {
-                    new_data[idx++] = (byte) (data[j] & 0xFF);
+                for(int j=0; j < len; j++)
+                {
+                    new_data[j] = (byte) (data[j] & 0xFF);
                 }
 
                 buffer = new DataBufferByte(new_data, (width * height));
