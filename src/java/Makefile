@@ -6,13 +6,14 @@
 # Makefile for the native code libraries
 #
 # Author: Justin Couch
-# Version: $Revision: 1.3 $
+# Version: $Revision: 1.4 $
 #
 #*********************************************************************
 
 # Names of packages to be compiled. These are declared in the order that
 # they are to be compiled in. We create one at a time
 BUILD_ORDER = \
+  vlc.image \
   vlc.net.content.image \
   vlc.net.content 
 
@@ -22,6 +23,7 @@ NATIVE_PACKAGES = vlc.net.content.image
 
 # Names of packages that we want included in the javadoc
 JAVADOC_PACKAGES = \
+  vlc.image \
   vlc.net.content.image \
   vlc.net.content 
 
