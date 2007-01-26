@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                The Virtual Light Company Copyright (c) 1999
+ *                The Virtual Light Company Copyright (c) 1999 - 2007
  *                               Java Source
  *
  * This code is licensed under the GNU Library GPL. Please read license.txt
@@ -17,12 +17,14 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ImageProducer;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
+
 import java.io.IOException;
+
 import java.net.URLConnection;
 import java.net.ContentHandler;
 
 // Application specific imports
-//none
+import vlc.image.ByteBufferImage;
 
 /**
  * Content handler to load Tagged Image Format files.
@@ -75,26 +77,37 @@ public class tiff extends ContentHandler
 
         Object ret_val = null;
 
-        for(int i = 0; i < classes.length && (ret_val != null); i++)
+        //for(int i = 0; i < classes.length && (ret_val != null); i++)
+		for(int i = 0; i < classes.length; i++)
         {
+			Class c = classes[i];
             int decode_type = -1;
 
-            if(classes[i].isInstance(ImageProducer.class))
+            //if(classes[i].isInstance(ImageProducer.class))
+			if( c.isAssignableFrom( ImageProducer.class ) )
             {
                 decode_type = ImageBuilder.IMAGEPRODUCER_REQD;
             }
-            else if(classes[i].isInstance(Image.class) ||
-                    classes[i].isInstance(BufferedImage.class))
+            //else if(classes[i].isInstance(Image.class) ||
+            //        classes[i].isInstance(BufferedImage.class))
+			else if( c.isAssignableFrom( BufferedImage.class ) ||
+				c.isAssignableFrom( Image.class ) ) 
             {
                 decode_type = ImageBuilder.IMAGE_REQD;
             }
-            else if(classes[i].isInstance(WritableRaster.class))
+            //else if(classes[i].isInstance(WritableRaster.class))
+			else if( c.isAssignableFrom( WritableRaster.class ) )
             {
                 decode_type = ImageBuilder.WRITABLE_RASTER_REQD;
             }
-            else if(classes[i].isInstance(Raster.class))
+            //else if(classes[i].isInstance(Raster.class))
+			else if( c.isAssignableFrom( Raster.class ) )
             {
                 decode_type = ImageBuilder.RASTER_REQD;
+            }
+            else if( c.isAssignableFrom( ByteBufferImage.class )) 
+            {
+                decode_type = ImageBuilder.BYTEBUFFERIMAGE_REQD;
             }
 
             if(decode_type != -1)
