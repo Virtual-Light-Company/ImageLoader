@@ -63,7 +63,7 @@ static KnownImageType available_types[] = {
 #ifdef _WIN32
 /* Windoze silliness. */
 #include <io.h>
-#include <fcntl.h>
+#include <sys/fcntl.h>
 
 #ifdef __GNUC__
 #define _HAVE_INT64
@@ -106,7 +106,7 @@ struct param {
    FILE *fptr;                             /* file ptr to encoded data */
    int width;                              /* width of the image */
    int height;                             /* height of the image */
-   int numComponents;					   /* num color components 1 - 4 */
+   int numComponents;                      /* num color components 1 - 4 */
    jint *buffer;                           /* one rows worth of pixels */
    int row_num;                            /* current row number */
    int error;                              /* TRUE on error, FALSE otherwise */
