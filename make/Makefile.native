@@ -6,7 +6,7 @@
 # Lowest level common makefile for both native and Java code
 # 
 # Author: Justin Couch
-# Version: $Revision: 1.13 $
+# Version: $Revision: 1.14 $
 #
 #*********************************************************************
 
@@ -26,7 +26,7 @@ JNI_HEADER_DIR   = $(JAVA_HOME)/include
 #
 # Built up tool information
 #
-CC=gcc -mno-cygwin
+CC=gcc
 CFLAGS=
 INCLUDE_LIST=$(INCLUDES) $(INCLUDE_DIR) $(JNI_HEADER_DIR)
 
@@ -49,6 +49,7 @@ else
   LIB_PREFIX=
   INCLUDE_LIST+= $(JNI_HEADER_DIR)/win32
   CFLAGS +=-D_WIN32 
+  CC=gcc -mno-cygwin
   CC_LINK_OPTIONS = $(CFLAGS) -Wl,--add-stdcall-alias -shared -nostdlibs -L$(3RDPARTY_DLL_DIR)
   ifdef LIBRARY_3RDPARTY
     3RDPARTY_LIBS = $(patsubst %,-l%, $(LIBRARY_3RDPARTY))
