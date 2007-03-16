@@ -5,7 +5,7 @@
 # Package makefile for the vlc.image directory
 #
 # Author: Rex Melton
-# Version: $Revision: 1.1 $
+# Version: $Revision: 1.2 $
 #
 #*********************************************************************
 
@@ -15,6 +15,8 @@ PACKAGE = vlc.image
 # compiled in
 SOURCE = \
   ByteBufferImage.java \
+  ImageScaleFilterDriver.java \
+  ImageScaleFilter.java \
 
 
 # The list of other files we need to copy from this directory to the classes
