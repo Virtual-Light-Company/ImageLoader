@@ -6,7 +6,7 @@
 # Makefile for the image_decode native library
 #
 # Author: Justin Couch
-# Version: $Revision: 1.2 $
+# Version: $Revision: 1.3 $
 #
 #*********************************************************************
 
@@ -21,7 +21,9 @@ C_SOURCE = common.c \
 	readtarga.c \
 	readbmp.c \
 	readjpeg.c \
-	readpng.c
+	readpng.c \
+    image_scale_filter.c \
+    area_avg_scale_filter.c \
 
 # Other libraries that the compile process is dependent on
 LIBRARY_3RDPARTY=z png jpeg tiff
