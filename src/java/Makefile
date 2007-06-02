@@ -6,7 +6,7 @@
 # Makefile for the native code libraries
 #
 # Author: Justin Couch
-# Version: $Revision: 1.4 $
+# Version: $Revision: 1.5 $
 #
 #*********************************************************************
 
@@ -19,7 +19,8 @@ BUILD_ORDER = \
 
 # List of packages that have native code libraries in use and require
 # JNI header generation
-NATIVE_PACKAGES = vlc.net.content.image
+NATIVE_PACKAGES = vlc.net.content.image \
+ vlc.image
 
 # Names of packages that we want included in the javadoc
 JAVADOC_PACKAGES = \

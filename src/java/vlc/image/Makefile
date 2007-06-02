@@ -5,7 +5,7 @@
 # Package makefile for the vlc.image directory
 #
 # Author: Rex Melton
-# Version: $Revision: 1.2 $
+# Version: $Revision: 1.3 $
 #
 #*********************************************************************
 
@@ -17,6 +17,9 @@ SOURCE = \
   ByteBufferImage.java \
   ImageScaleFilterDriver.java \
   ImageScaleFilter.java \
+
+# Source files to create the JNI header information from
+JNI_SOURCE=ImageScaleFilterDriver.java
 
 
 # The list of other files we need to copy from this directory to the classes

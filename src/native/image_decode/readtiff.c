@@ -18,8 +18,8 @@
  * This file contains routines to read input images in Tiff format.
  *
  * The libtiff library does not like to operate with pipes because it performs
- * random seeks into the stream. To deal with this the code makes use of 
- * the TIFFClientOpen function and replaces all the normal internal routines 
+ * random seeks into the stream. To deal with this the code makes use of
+ * the TIFFClientOpen function and replaces all the normal internal routines
  * with our own custom work. It then takes the entire pipe's contents into an
  * internal buffer which the library can then use to search into.
  */
@@ -226,7 +226,7 @@ static void start_input_tiff(Parameters params)
                 source->pub.numComponents = 1;
                 source->pub.get_pixel_row = get_row_gray;
                 break;
-                
+
             case PHOTOMETRIC_RGB:
             case PHOTOMETRIC_SEPARATED:
             case PHOTOMETRIC_YCBCR:
@@ -303,7 +303,7 @@ Parameters tiff_init()
         int i;
         for(i = 0; i < MAX_FD; i++)
             buffers[i] = NULL;
-        
+
         initialized = 1;
     }
 
@@ -400,7 +400,7 @@ static tsize_t pipeRead(thandle_t fd, tdata_t buf, tsize_t size)
         }
 
     } while(bytes_left > 0);
-    
+
     return(tsize_t) total;
 }
 
